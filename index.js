@@ -163,49 +163,27 @@ const app = express();
 app.use(express.json());
 app.use(cookieParser());
 
-// ✅ CORS Setup (Fixed)
-const whitelist = [
-  "http://localhost:3001",
-  "http://localhost:5173",
-  "http://localhost:3000",
-  "https://client-brown-seven.vercel.app" // Removed trailing slash
-];
-
-const corsOptions = {
-  origin: (origin, callback) => {
-    if (!origin || whitelist.includes(origin)) {
-      callback(null, true);
-    } else {
-      callback(new Error("Not allowed by CORS"));
-    }
-  },
-  credentials: true,
-  methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
-  allowedHeaders: ["Content-Type", "Authorization"],
-};
-
-app.use(cors(corsOptions));
-
-// ✅ Debugging Middleware
+// ✅ Force CORS Headers
 app.use((req, res, next) => {
-  console.log("📢 Incoming Request:", req.method, req.url);
-  console.log("📢 Headers:", req.headers);
-  console.log("📢 Cookies:", req.cookies);
-  console.log("📢 Body:", req.body);
-  res.header("Access-Control-Allow-Credentials", "true");
-  res.header("Access-Control-Allow-Origin", req.headers.origin); // Explicitly set the origin
+  res.header("Access-Control-Allow-Origin", "https://client-brown-seven.vercel.app");
   res.header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
   res.header("Access-Control-Allow-Headers", "Content-Type, Authorization");
+  res.header("Access-Control-Allow-Credentials", "true");
+  if (req.method === "OPTIONS") {
+    return res.sendStatus(200); // Handle preflight requests
+  }
   next();
 });
 
-// ✅ Handle Preflight Requests
-app.options("*", (req, res) => {
-  res.header("Access-Control-Allow-Origin", req.headers.origin);
-  res.header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
-  res.header("Access-Control-Allow-Headers", "Content-Type, Authorization");
-  res.sendStatus(200);
-});
+// ✅ Use CORS Middleware
+app.use(
+  cors({
+    origin: "https://client-brown-seven.vercel.app",
+    credentials: true,
+    methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
+    allowedHeaders: ["Content-Type", "Authorization"],
+  })
+);
 
 // ✅ Import Routes
 import authRoutes from "./routes/auth.js";
@@ -225,6 +203,7 @@ app.use("/api/likes", likeRoutes);
 app.use("/api/stories", storyRoutes);
 app.use("/api/relationships", relationshipRoutes);
 
+// ✅ Test Route
 app.get("/", (req, res) => {
   res.send("Root is working");
 });
