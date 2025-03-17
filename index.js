@@ -86,6 +86,70 @@
 
 
 
+// import express from "express";
+// import cors from "cors";
+// import cookieParser from "cookie-parser";
+// import dotenv from "dotenv";
+
+// dotenv.config();
+
+// const app = express();
+
+// // ✅ Middleware Setup
+// app.use(express.json());
+// app.use(cookieParser());
+
+// // ✅ CORS Setup
+// const whitelist = ["http://localhost:3001", "http://localhost:5173", "http://localhost:3000"];
+// const corsOptions = {
+//   origin: ["https://client-brown-seven.vercel.app/", "http://localhost:3000"], 
+//   credentials: true,  
+//   methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
+//   allowedHeaders: ["Content-Type", "Authorization"],
+// };
+// app.use(cors(corsOptions));
+
+
+// // ✅ Debugging Middleware
+// app.use((req, res, next) => {
+//   console.log("📢 Incoming Request:", req.method, req.url);
+//   console.log("📢 Headers:", req.headers);
+//   console.log("📢 Cookies:", req.cookies);
+//   console.log("📢 Body:", req.body);
+//   res.header("Access-Control-Allow-Credentials", "true");
+//   next();
+// });
+
+// // ✅ Import Routes
+// import authRoutes from "./routes/auth.js";
+// import userRoutes from "./routes/users.js";
+// import postRoutes from "./routes/posts.js";
+// import commentRoutes from "./routes/comments.js";
+// import likeRoutes from "./routes/likes.js";
+// import storyRoutes from "./routes/stories.js";
+// import relationshipRoutes from "./routes/relationships.js";
+
+// // ✅ API Routes
+// app.use("/api/auth", authRoutes);
+// app.use("/api/users", userRoutes);
+// app.use("/api/posts", postRoutes);
+// app.use("/api/comments", commentRoutes);
+// app.use("/api/likes", likeRoutes);
+// app.use("/api/stories", storyRoutes);
+// app.use("/api/relationships", relationshipRoutes);
+
+// app.get("/", (req, res) => {
+//   res.send("Root is working");
+// });
+
+// const port = process.env.PORT || 8800;
+
+// // ✅ Start Server
+// app.listen(port, () => {
+//   console.log(`🚀 Server running on http://localhost:${port}`);
+// });
+
+
 import express from "express";
 import cors from "cors";
 import cookieParser from "cookie-parser";
@@ -99,16 +163,28 @@ const app = express();
 app.use(express.json());
 app.use(cookieParser());
 
-// ✅ CORS Setup
-const whitelist = ["http://localhost:3001", "http://localhost:5173", "http://localhost:3000"];
+// ✅ CORS Setup (Fixed)
+const whitelist = [
+  "http://localhost:3001",
+  "http://localhost:5173",
+  "http://localhost:3000",
+  "https://client-brown-seven.vercel.app" // Removed trailing slash
+];
+
 const corsOptions = {
-  origin: ["https://client-brown-seven.vercel.app/", "http://localhost:3000"], 
-  credentials: true,  
+  origin: (origin, callback) => {
+    if (!origin || whitelist.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error("Not allowed by CORS"));
+    }
+  },
+  credentials: true,
   methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
   allowedHeaders: ["Content-Type", "Authorization"],
 };
-app.use(cors(corsOptions));
 
+app.use(cors(corsOptions));
 
 // ✅ Debugging Middleware
 app.use((req, res, next) => {
@@ -117,7 +193,18 @@ app.use((req, res, next) => {
   console.log("📢 Cookies:", req.cookies);
   console.log("📢 Body:", req.body);
   res.header("Access-Control-Allow-Credentials", "true");
+  res.header("Access-Control-Allow-Origin", req.headers.origin); // Explicitly set the origin
+  res.header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
+  res.header("Access-Control-Allow-Headers", "Content-Type, Authorization");
   next();
+});
+
+// ✅ Handle Preflight Requests
+app.options("*", (req, res) => {
+  res.header("Access-Control-Allow-Origin", req.headers.origin);
+  res.header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
+  res.header("Access-Control-Allow-Headers", "Content-Type, Authorization");
+  res.sendStatus(200);
 });
 
 // ✅ Import Routes
