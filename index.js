@@ -102,7 +102,7 @@ app.use(cookieParser());
 // ✅ CORS Setup
 const whitelist = ["http://localhost:3001", "http://localhost:5173", "http://localhost:3000"];
 const corsOptions = {
-  origin: ["https://your-frontend-domain.com", "http://localhost:3000"], 
+  origin: ["https://client-brown-seven.vercel.app/", "http://localhost:3000"], 
   credentials: true,  
   methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
   allowedHeaders: ["Content-Type", "Authorization"],
