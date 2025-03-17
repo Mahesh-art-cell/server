@@ -1,21 +1,29 @@
+// import express from "express";
+// import { login,register,logout } from "../controllers/auth.js";
+
+// const router = express.Router()
+
+// router.post("/register", register)
+// router.post("/login", login)
+
+
+// // ✅ Logout Route
+// router.post("/logout", logout)
+
+
+
 import express from "express";
-import { login,register,logout } from "../controllers/auth.js";
+import { login, register, logout } from "../controllers/auth.js";
 
-const router = express.Router()
+const router = express.Router();
 
-router.post("/login", login)
-router.post("/register", register)
+// ✅ Register Route
+router.post("/register", register);
 
+// ✅ Login Route
+router.post("/login", login);
 
 // ✅ Logout Route
-router.post("/logout", (req, res) => {
-  res.clearCookie("accessToken", {
-    httpOnly: true,
-    secure: false, // ✅ Set to true in production (with HTTPS)
-    sameSite: "lax", // ✅ "none" if HTTPS is used
-  });
-  return res.status(200).json("Logged out successfully!");
-});
+router.post("/logout", logout);
 
 export default router;
-

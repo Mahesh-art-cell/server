@@ -110,34 +110,38 @@ export const login = (req, res) => {
   const q = "SELECT * FROM users WHERE email = ?";
 
   db.query(q, [req.body.email], async (err, data) => {
-    if (err) return res.status(500).json(err);
-    if (data.length === 0) return res.status(404).json("User not found!");
+    if (err) return res.status(500).json({ error: "Database error", details: err });
+    if (data.length === 0) return res.status(404).json({ error: "User not found" });
 
     const isPasswordCorrect = await bcrypt.compare(req.body.password, data[0].password);
-    if (!isPasswordCorrect) return res.status(400).json("Wrong password!");
+    if (!isPasswordCorrect) return res.status(400).json({ error: "Wrong password" });
 
     // ✅ Generate JWT Token
     const token = jwt.sign({ id: data[0].id }, process.env.JWT_SECRET, { expiresIn: "1h" });
 
     console.log("✅ Generated Token:", token);
 
-    // ✅ Fix Cookie Settings for Render Deployment
-    res.clearCookie("accessToken", {
-      httpOnly: true,
-      secure: true,    // ✅ Must match login settings
-      sameSite: "none"
-    }).status(200).json("User has been logged out.");
-    
-    
+    // ✅ SET Cookie Instead of Clearing It
+    res.cookie("accessToken", token, {
+      httpOnly: true, 
+      secure: true, // Must be true in production (HTTPS)
+      sameSite: "None",
+    });
 
+    // ✅ Return User Details & Token
     res.status(200).json({
-      id: data[0].id,
-      username: data[0].username,
-      profilePic: data[0].profilePic,
-      token: token // ✅ Send token in response for debugging
+      message: "Login successful",
+      user: {
+        id: data[0].id,
+        username: data[0].username,
+        email: data[0].email,
+        profilePic: data[0].profilePic
+      },
+      token: token
     });
   });
 };
+
 
 
 export const logout = (req, res) => {
