@@ -37,22 +37,26 @@ export const verifyToken = (req, res, next) => {
   // Get token from cookies or authorization header
   const token = req.cookies?.accessToken || req.headers.authorization?.split(" ")[1];
   
-  console.log("🔹 Verifying token:", token ? "Token exists" : "No token");
+  console.log("🔹 Verifying token:", token ? `Token exists: ${token}` : "No token");
+
+if (!token) {
+  console.error("❌ No token provided");
+  return res.status(401).json("Not authenticated!");
+}
+
+try {
+  const userInfo = jwt.verify(token, process.env.JWT_SECRET);
+  console.log("✅ Token verified for user:", userInfo.id, "Token Expires At:", new Date(userInfo.exp * 1000));
   
-  if (!token) {
-    console.error("❌ No token provided");
-    return res.status(401).json("Not authenticated!");
+  req.userInfo = userInfo;
+  next();
+} catch (err) {
+  if (err.name === "TokenExpiredError") {
+    console.error("❌ Token has expired!");
+    return res.status(403).json("Token expired. Please login again.");
   }
-  
-  try {
-    const userInfo = jwt.verify(token, process.env.JWT_SECRET);
-    console.log("✅ Token verified for user:", userInfo.id);
-    
-    // Add userInfo to request object for use in controller
-    req.userInfo = userInfo;
-    next();
-  } catch (err) {
-    console.error("❌ Token verification failed:", err.message);
-    return res.status(403).json("Token is not valid!");
-  }
+  console.error("❌ Token verification failed:", err.message);
+  return res.status(403).json("Token is not valid!");
+}
+
 };
