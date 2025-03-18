@@ -1,4 +1,6 @@
 
+
+
 // import express from "express";
 // import multer from "multer";
 // import path from "path";
@@ -39,7 +41,7 @@
 // const upload = multer({ 
 //   storage,
 //   fileFilter,
-//   limits: { fileSize: 10 * 1024 * 1024 } // Increased to 10MB limit
+//   limits: { fileSize: 10 * 1024 * 1024 } // 10MB limit
 // });
 
 // // Get user by ID
@@ -88,6 +90,7 @@
 // export default router;
 
 
+
 import express from "express";
 import multer from "multer";
 import path from "path";
@@ -109,10 +112,11 @@ const storage = multer.diskStorage({
     cb(null, uploadDir); // Use the verified directory
   },
   filename: (req, file, cb) => {
-    // Generate a unique filename with timestamp and original extension
+    // Generate a unique filename with user ID, timestamp and original extension
+    const userId = req.params.userId;
     const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
     const ext = path.extname(file.originalname);
-    cb(null, uniqueSuffix + ext);
+    cb(null, `user_${userId}_${uniqueSuffix}${ext}`);
   },
 });
 
@@ -125,6 +129,7 @@ const fileFilter = (req, file, cb) => {
   cb(null, true);
 };
 
+// Create multer instance but don't apply it yet
 const upload = multer({ 
   storage,
   fileFilter,
@@ -141,7 +146,7 @@ router.put("/:userId", verifyToken, updateUser);
 router.post("/upload/:userId", verifyToken, (req, res, next) => {
   try {
     // Ensure the user is updating their own profile
-    if (req.userInfo.id != req.params.userId) {
+    if (parseInt(req.userInfo.id) !== parseInt(req.params.userId)) {
       return res.status(403).json({ error: "You can only upload to your own profile!" });
     }
     next();
@@ -150,7 +155,7 @@ router.post("/upload/:userId", verifyToken, (req, res, next) => {
     return res.status(500).json({ error: "Authentication error" });
   }
 }, (req, res) => {
-  // Handle the file upload with custom error handling
+  // Handle the file upload with proper error handling
   upload.single("file")(req, res, (err) => {
     if (err) {
       console.error("❌ Upload error:", err);
@@ -163,6 +168,9 @@ router.post("/upload/:userId", verifyToken, (req, res, next) => {
     if (!req.file) {
       return res.status(400).json({ error: "No file uploaded or file not recognized as an image!" });
     }
+    
+    // Clean up old files if this is a profile or cover update
+    // This would require additional logic to determine if we're updating profile or cover
     
     console.log("✅ File uploaded successfully:", req.file.filename);
     
