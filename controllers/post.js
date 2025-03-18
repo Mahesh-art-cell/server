@@ -2,19 +2,22 @@ import { db } from "../connect.js";
 import jwt from "jsonwebtoken";
 import moment from "moment";
 
-// ✅ Get All Posts
 
+// ✅ Get All Posts
 export const getPosts = (req, res) => {
   console.log("✅ getPosts API hit");
 
-  const token = req.cookies.accessToken;
+  // ✅ Retrieve token correctly from cookies or headers
+  const token = req.cookies.accessToken || req.headers.authorization?.split(" ")[1];
+
   if (!token) {
     console.log("❌ No token provided");
     return res.status(401).json("Not logged in!");
   }
 
   try {
-    const userInfo = jwt.verify(token, "secretkey");
+    // ✅ Use the correct secret key from environment variables
+    const userInfo = jwt.verify(token, process.env.JWT_SECRET);
     console.log("✅ Token Verified:", userInfo);
 
     const q = "SELECT * FROM posts WHERE userId = ? ORDER BY createdAt DESC"; // ✅ Sort posts by latest
@@ -25,7 +28,7 @@ export const getPosts = (req, res) => {
         return res.status(500).json("Database error!");
       }
 
-      const formattedPosts = data.map(post => ({
+      const formattedPosts = data.map((post) => ({
         ...post,
         createdAt: moment(post.createdAt).format("YYYY-MM-DD HH:mm:ss"),
       }));
@@ -33,12 +36,12 @@ export const getPosts = (req, res) => {
       console.log("✅ Posts Retrieved:", formattedPosts);
       res.status(200).json(formattedPosts);
     });
-
   } catch (err) {
     console.log("❌ Token Verification Failed:", err.message);
     return res.status(403).json("Token is not valid!");
   }
 };
+
 
 
 
