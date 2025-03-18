@@ -109,14 +109,15 @@ if (!fs.existsSync(uploadDir)) {
 // Improved Multer Storage Configuration
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    cb(null, uploadDir); // Use the verified directory
+    cb(null, uploadDir);
   },
   filename: (req, file, cb) => {
     // Generate a unique filename with user ID, timestamp and original extension
     const userId = req.params.userId;
+    const fileType = req.query.type || 'general'; // 'profile', 'cover', or 'general'
     const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-    const ext = path.extname(file.originalname);
-    cb(null, `user_${userId}_${uniqueSuffix}${ext}`);
+    const ext = path.extname(file.originalname).toLowerCase();
+    cb(null, `user_${userId}_${fileType}_${uniqueSuffix}${ext}`);
   },
 });
 
@@ -129,7 +130,7 @@ const fileFilter = (req, file, cb) => {
   cb(null, true);
 };
 
-// Create multer instance but don't apply it yet
+// Create multer instance
 const upload = multer({ 
   storage,
   fileFilter,
@@ -168,9 +169,6 @@ router.post("/upload/:userId", verifyToken, (req, res, next) => {
     if (!req.file) {
       return res.status(400).json({ error: "No file uploaded or file not recognized as an image!" });
     }
-    
-    // Clean up old files if this is a profile or cover update
-    // This would require additional logic to determine if we're updating profile or cover
     
     console.log("✅ File uploaded successfully:", req.file.filename);
     
