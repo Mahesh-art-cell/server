@@ -95,7 +95,7 @@ import express from "express";
 import multer from "multer";
 import path from "path";
 import fs from "fs";
-import { getUser, updateUser } from "../controllers/user.js";
+import {getUser,updateUser} from "../controllers/user.js"
 import { verifyToken } from "../middleware/verifyToken.js";
 
 const router = express.Router();
