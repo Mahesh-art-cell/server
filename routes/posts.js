@@ -22,3 +22,5 @@ router.delete("/:id", verifyToken, deletePost); // ✅ Requires authentication
 
 export default router;
 
+
+
