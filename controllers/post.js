@@ -50,16 +50,18 @@ export const getPosts = (req, res) => {
 
 // ✅ Add Post
 
+// ✅ Add Post
 export const addPost = (req, res) => {
-  const token = req.cookies.accessToken;
+  const token = req.cookies.accessToken || req.headers.authorization?.split(" ")[1];
+
   if (!token) {
     console.log("❌ No token provided");
     return res.status(401).json("Not logged in!");
   }
 
-  jwt.verify(token, "secretkey", (err, userInfo) => {
+  jwt.verify(token, process.env.JWT_SECRET, (err, userInfo) => {
     if (err) {
-      console.log("❌ Token is not valid!");
+      console.log("❌ Token is not valid!", err.message);
       return res.status(403).json("Token is not valid!");
     }
 
@@ -71,7 +73,7 @@ export const addPost = (req, res) => {
       userInfo.id,
     ];
 
-    console.log("🟢 Insert Query Values:", values); // ✅ Debugging log
+    console.log("🟢 Insert Query Values:", values);
 
     db.query(q, [values], (err, data) => {
       if (err) {
@@ -94,16 +96,18 @@ export const addPost = (req, res) => {
 
 
 // ✅ Delete Post
+// ✅ Delete Post
 export const deletePost = (req, res) => {
-  const token = req.cookies.accessToken;
+  const token = req.cookies.accessToken || req.headers.authorization?.split(" ")[1];
+
   if (!token) {
     console.log("❌ No token provided");
     return res.status(401).json("Not logged in!");
   }
 
-  jwt.verify(token, "secretkey", (err, userInfo) => {
+  jwt.verify(token, process.env.JWT_SECRET, (err, userInfo) => {
     if (err) {
-      console.log("❌ Token is not valid!");
+      console.log("❌ Token is not valid!", err.message);
       return res.status(403).json("Token is not valid!");
     }
 
