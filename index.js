@@ -177,14 +177,14 @@ app.use(
         callback(new Error("❌ Not allowed by CORS"));
       }
     },
-    credentials: true,
+    credentials: true, // ✅ Important for cookies
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
     optionsSuccessStatus: 204,
   })
 );
 
-// ✅ Preflight Request Handling
+// ✅ Handle Preflight Request
 app.options("*", (req, res) => {
   res.header("Access-Control-Allow-Origin", req.headers.origin);
   res.header(
@@ -199,7 +199,7 @@ app.options("*", (req, res) => {
   res.sendStatus(204);
 });
 
-// ✅ Debugging Middleware for CORS
+// ✅ Debug CORS Requests
 app.use((req, res, next) => {
   console.log("📢 Incoming Request from:", req.headers.origin || "Unknown");
   next();
