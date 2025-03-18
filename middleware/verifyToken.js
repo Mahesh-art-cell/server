@@ -20,11 +20,12 @@ import dotenv from "dotenv";
 dotenv.config();
 
 export const verifyToken = (req, res, next) => {
-  console.log("🔹 Incoming Cookies:", req.cookies); // Debugging
+  console.log("🔹 Incoming Cookies:", req.cookies);
+  console.log("🔹 Incoming Headers:", req.headers);
 
+  // Extract token from cookies or header
   let token = req.cookies.accessToken || req.headers.authorization?.split(" ")[1];
-
-  console.log("🔹 Extracted Token:", token); // Check if token is available
+  console.log("🔹 Extracted Token:", token);
 
   if (!token) {
     console.error("❌ No Token Found!");
@@ -36,11 +37,9 @@ export const verifyToken = (req, res, next) => {
       console.error("❌ Token Verification Failed:", err);
       return res.status(403).json("Token is not valid!");
     }
-    
+
     console.log("✅ Token Verified, User:", user);
     req.user = user;
     next();
   });
 };
-
-

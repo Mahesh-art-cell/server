@@ -145,9 +145,12 @@ export const login = (req, res) => {
 
 
 export const logout = (req, res) => {
-  res.clearCookie("accessToken", {
-    httpOnly: true,
-    secure: true,   // ✅ Must match login settings
-    sameSite: "none"
-  }).status(200).json("User has been logged out.");
+  res
+    .clearCookie("accessToken", {
+      httpOnly: true,
+      secure: true, // Change to false for localhost
+      sameSite: "none", // Change to "lax" for localhost
+    })
+    .status(200)
+    .json({ message: "User has been logged out successfully." });
 };
