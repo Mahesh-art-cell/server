@@ -162,35 +162,48 @@ const app = express();
 app.use(express.json());
 app.use(cookieParser());
 
-// ✅ Allow Multiple Origins Dynamically
+// ✅ Allowed Origins
 const whitelist = [
   "http://localhost:3000", // ✅ Local Dev
   "https://client-brown-seven.vercel.app", // ✅ Production URL
 ];
 
-const corsOptions = {
-  origin: (origin, callback) => {
-    if (!origin || whitelist.includes(origin)) {
-      callback(null, true); // ✅ Allow Origin
-    } else {
-      callback(new Error("❌ Not allowed by CORS")); // ❌ Block Other Origins
-    }
-  },
-  credentials: true, // ✅ Allows Cookies to be sent
-  methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
-  allowedHeaders: ["Content-Type", "Authorization"],
-  preflightContinue: false, // ✅ Important for OPTIONS requests
-  optionsSuccessStatus: 204, // ✅ Handle preflight properly
-};
+// ✅ Configure CORS
+app.use(
+  cors({
+    origin: (origin, callback) => {
+      if (!origin || whitelist.includes(origin)) {
+        callback(null, true);
+      } else {
+        console.log("❌ Blocked by CORS - Origin:", origin);
+        callback(new Error("❌ Not allowed by CORS"));
+      }
+    },
+    credentials: true, // ✅ Allow cookies
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+    optionsSuccessStatus: 204, // ✅ Send 204 for preflight success
+  })
+);
 
-app.use(cors(corsOptions));
+// ✅ Handle Preflight (OPTIONS) Requests Manually
+app.options("*", (req, res) => {
+  res.header("Access-Control-Allow-Origin", req.headers.origin);
+  res.header(
+    "Access-Control-Allow-Methods",
+    "GET,PUT,PATCH,POST,DELETE,OPTIONS"
+  );
+  res.header(
+    "Access-Control-Allow-Headers",
+    "Origin, X-Requested-With, Content-Type, Accept, Authorization"
+  );
+  res.header("Access-Control-Allow-Credentials", "true");
+  res.sendStatus(204);
+});
 
-// ✅ Handle Preflight (OPTIONS) Requests Globally
-app.options("*", cors(corsOptions));
-
-// ✅ Debugging Middleware to Log Origin
+// ✅ Debugging Middleware for Origin Check
 app.use((req, res, next) => {
-  console.log("📢 Incoming request from:", req.headers.origin || "Unknown");
+  console.log("📢 Incoming Request from:", req.headers.origin || "Unknown");
   next();
 });
 
