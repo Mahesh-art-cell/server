@@ -165,7 +165,7 @@ app.use(cookieParser());
 // ✅ Allowed Origins
 const whitelist = [
   "http://localhost:3001", // ✅ Local Dev
-  "https://client-brown-seven.vercel.app", // ✅ Production URL
+  // "https://client-brown-seven.vercel.app", // ✅ Production URL
 ];
 
 // ✅ Configure CORS
