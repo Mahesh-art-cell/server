@@ -1,5 +1,4 @@
 
-
 // import express from "express";
 // import cors from "cors";
 // import cookieParser from "cookie-parser";
@@ -12,6 +11,9 @@
 // // ✅ Middleware Setup
 // app.use(express.json());
 // app.use(cookieParser());
+
+// // ✅ Serve Static Files (for uploaded images)
+// app.use("/upload", express.static("public/upload"));
 
 // // ✅ Allowed Origins
 // const whitelist = [
@@ -30,34 +32,12 @@
 //         callback(new Error("❌ Not allowed by CORS"));
 //       }
 //     },
-//     credentials: true, // ✅ Important for cookies
+//     credentials: true, // ✅ Allow Cookies
 //     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
 //     allowedHeaders: ["Content-Type", "Authorization"],
 //     optionsSuccessStatus: 204,
 //   })
 // );
-
-// // ✅ Handle Preflight Request
-// app.options("*", (req, res) => {
-//   res.header("Access-Control-Allow-Origin", req.headers.origin);
-//   res.header(
-//     "Access-Control-Allow-Methods",
-//     "GET,PUT,PATCH,POST,DELETE,OPTIONS"
-//   );
-//   res.header(
-//     "Access-Control-Allow-Headers",
-//     "Origin, X-Requested-With, Content-Type, Accept, Authorization"
-//   );
-//   res.header("Access-Control-Allow-Credentials", "true");
-//   res.sendStatus(204);
-// });
-
-// // ✅ Debug CORS Requests
-// app.use((req, res, next) => {
-//   console.log("📢 Incoming Request from:", req.headers.origin || "Unknown");
-//   next();
-// });
-
 
 // // ✅ Import Routes
 // import authRoutes from "./routes/auth.js";
@@ -89,12 +69,14 @@
 // });
 
 
+
+
 import express from "express";
 import cors from "cors";
 import cookieParser from "cookie-parser";
 import dotenv from "dotenv";
 
-dotenv.config();
+dotenv.config(); // ✅ Load .env variables
 
 const app = express();
 
