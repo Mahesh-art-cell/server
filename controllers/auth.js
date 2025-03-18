@@ -164,6 +164,7 @@ export const register = (req, res) => {
 
 
 // ✅ Login User
+// ✅ Login User
 export const login = (req, res) => {
   const q = "SELECT * FROM users WHERE email = ?";
 
@@ -187,18 +188,24 @@ export const login = (req, res) => {
 
     try {
       // ✅ Generate JWT Token
+      console.log("🔐 Generating token with secret:", process.env.JWT_SECRET);
       const token = jwt.sign(
-        { id: data[0].id },
-        process.env.JWT_SECRET, // ✅ Ensure JWT_SECRET is loaded correctly
+        { id: data[0].id, email: data[0].email },
+        process.env.JWT_SECRET,
         { expiresIn: "1h" } // ⏰ Token expires in 1 hour
       );
+
+      if (!token) {
+        console.error("❌ Token generation failed");
+        return res.status(500).json({ error: "Failed to generate token" });
+      }
 
       console.log("✅ Token Generated Successfully:", token);
 
       // ✅ Set Cookie for Token
       res.cookie("accessToken", token, {
         httpOnly: true, // ✅ Protects against XSS attacks
-        secure: process.env.NODE_ENV === "production", // ✅ Set secure only in production
+        secure: process.env.NODE_ENV === "production", // ✅ Secure in production
         sameSite: process.env.NODE_ENV === "production" ? "None" : "Lax", // ✅ Cross-origin cookie support
         maxAge: 1 * 60 * 60 * 1000, // ⏰ Token valid for 1 hour
       });
@@ -206,6 +213,7 @@ export const login = (req, res) => {
       // ✅ Return User Data on Successful Login
       res.status(200).json({
         message: "Login successful",
+        token: token, // ✅ Send token to client if needed
         user: {
           id: data[0].id,
           username: data[0].username,
