@@ -119,30 +119,25 @@ export const login = (req, res) => {
     // ✅ Generate JWT Token
     const token = jwt.sign({ id: data[0].id }, process.env.JWT_SECRET, { expiresIn: "1h" });
 
-    console.log("✅ Generated Token:", token);
-
-    // ✅ SET Cookie Instead of Clearing It
+    // ✅ Set Cookie for Token
     res.cookie("accessToken", token, {
-      httpOnly: true, 
-      secure: true, // Must be true in production (HTTPS)
-      sameSite: "None",
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: process.env.NODE_ENV === "production" ? "None" : "Lax",
     });
 
-    // ✅ Return User Details & Token
+    // ✅ Return User Data
     res.status(200).json({
       message: "Login successful",
       user: {
         id: data[0].id,
         username: data[0].username,
         email: data[0].email,
-        profilePic: data[0].profilePic
+        profilePic: data[0].profilePic,
       },
-      token: token
     });
   });
 };
-
-
 
 export const logout = (req, res) => {
   res
