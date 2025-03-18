@@ -147,8 +147,6 @@
 //   console.log(`🚀 Server running on http://localhost:${port}`);
 // });
 
-
-
 import express from "express";
 import cors from "cors";
 import cookieParser from "cookie-parser";
@@ -164,11 +162,11 @@ app.use(cookieParser());
 
 // ✅ Allowed Origins
 const whitelist = [
-  "http://localhost:3001", // ✅ Local Dev
-  // "https://client-brown-seven.vercel.app", // ✅ Production URL
+  "http://localhost:3000", // ✅ Local Development
+  "https://client-brown-seven.vercel.app", // ✅ Deployed Client
 ];
 
-// ✅ Configure CORS
+// ✅ CORS Configuration
 app.use(
   cors({
     origin: (origin, callback) => {
@@ -179,14 +177,14 @@ app.use(
         callback(new Error("❌ Not allowed by CORS"));
       }
     },
-    credentials: true, // ✅ Allow cookies
-    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+    credentials: true,
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
-    optionsSuccessStatus: 204, // ✅ Send 204 for preflight success
+    optionsSuccessStatus: 204,
   })
 );
 
-// ✅ Handle Preflight (OPTIONS) Requests Manually
+// ✅ Preflight Request Handling
 app.options("*", (req, res) => {
   res.header("Access-Control-Allow-Origin", req.headers.origin);
   res.header(
@@ -201,11 +199,12 @@ app.options("*", (req, res) => {
   res.sendStatus(204);
 });
 
-// ✅ Debugging Middleware for Origin Check
+// ✅ Debugging Middleware for CORS
 app.use((req, res, next) => {
   console.log("📢 Incoming Request from:", req.headers.origin || "Unknown");
   next();
 });
+
 
 // ✅ Import Routes
 import authRoutes from "./routes/auth.js";
