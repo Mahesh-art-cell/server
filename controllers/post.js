@@ -232,10 +232,6 @@ export const getPosts = (req, res) => {
 
 
 // ✅ Add New Post with Token Authentication
-import { db } from "../connect.js";
-import jwt from "jsonwebtoken";
-import moment from "moment";
-
 // ✅ Add New Post with Debugging
 export const addPost = (req, res) => {
   // Extract token from cookies or headers
