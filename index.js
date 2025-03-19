@@ -149,7 +149,7 @@ import cors from "cors";
 import cookieParser from "cookie-parser";
 import dotenv from "dotenv";
 
-dotenv.config(); // ✅ Load .env variables
+dotenv.config(); // ✅ Load environment variables
 
 const app = express();
 
@@ -160,9 +160,7 @@ app.use(cookieParser());
 // ✅ Serve Static Files (for uploaded images)
 app.use("/upload", express.static("public/upload"));
 
-
 // ✅ Allowed Origins
-
 const whitelist = [
   "http://localhost:3000", // ✅ Local Development
   "https://client-brown-seven.vercel.app", // ✅ Deployed Client
@@ -216,7 +214,3 @@ const port = process.env.PORT || 8800;
 app.listen(port, () => {
   console.log(`🚀 Server running on http://localhost:${port}`);
 });
-
-
-
-
