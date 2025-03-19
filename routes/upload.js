@@ -7,7 +7,7 @@ const router = express.Router();
 // ✅ Define storage for uploaded files
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
-    cb(null, "public/upload"); // ✅ Save in /public/upload
+    cb(null, "public/upload"); // ✅ Save files in /public/upload
   },
   filename: function (req, file, cb) {
     cb(null, Date.now() + path.extname(file.originalname)); // Unique file name
