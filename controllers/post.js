@@ -201,9 +201,13 @@ export const addPost = (req, res) => {
       return res.status(403).json("Token is not valid!");
     }
 
-    const q = "INSERT INTO posts(`title`, `content`, `img`, `createdAt`, `userId`) VALUES (?)";
+    // Validate request body
+    if (!req.body.content && !req.body.img) {
+      return res.status(400).json("Post must have content or image");
+    }
+
+    const q = "INSERT INTO posts(`content`, `img`, `createdAt`, `userId`) VALUES (?)";
     const values = [
-      req.body.title || null,
       req.body.content || "",
       req.body.img || null,
       moment().format("YYYY-MM-DD HH:mm:ss"),
@@ -213,11 +217,11 @@ export const addPost = (req, res) => {
     db.query(q, [values], (err, data) => {
       if (err) {
         console.error("Database Error:", err);
-        return res.status(500).json(err);
+        return res.status(500).json("Failed to create post");
       }
 
       return res.status(200).json({
-        message: "Post has been created.",
+        message: "Post has been created successfully",
         postId: data.insertId
       });
     });
@@ -243,14 +247,14 @@ export const deletePost = (req, res) => {
     db.query(q, [postId, userInfo.id], (err, data) => {
       if (err) {
         console.error("Database Error:", err);
-        return res.status(500).json(err);
+        return res.status(500).json("Failed to delete post");
       }
       
       if (data.affectedRows === 0) {
         return res.status(403).json("You can only delete your own posts!");
       }
 
-      return res.status(200).json("Post has been deleted.");
+      return res.status(200).json("Post has been deleted successfully");
     });
   });
 };
