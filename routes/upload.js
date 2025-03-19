@@ -38,10 +38,10 @@ import path from "path";
 
 const router = express.Router();
 
-// ✅ Define storage location and filename for uploaded files
+// ✅ Define storage for uploaded files
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
-    cb(null, "public/upload"); // ✅ Save to /public/upload folder
+    cb(null, "public/upload"); // ✅ Save in /public/upload
   },
   filename: function (req, file, cb) {
     cb(null, Date.now() + path.extname(file.originalname)); // Unique filename
@@ -50,7 +50,7 @@ const storage = multer.diskStorage({
 
 const upload = multer({ storage: storage });
 
-// ✅ Handle File Upload - POST /api/upload
+// ✅ POST /api/upload (File Upload API)
 router.post("/", upload.single("file"), (req, res) => {
   if (!req.file) {
     return res.status(400).json({ error: "No file uploaded." });
