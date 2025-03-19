@@ -9,6 +9,8 @@ import { dirname } from "path";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
+
+
 // Upload file handler
 export const uploadFile = (req, res) => {
   const token = req.cookies.accessToken || req.headers.authorization?.split(" ")[1];
