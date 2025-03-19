@@ -34,29 +34,36 @@
 import jwt from "jsonwebtoken";
 
 export const verifyToken = (req, res, next) => {
-  // Get token from cookies or authorization header
-  const token = req.cookies?.accessToken || req.headers.authorization?.split(" ")[1];
+  const token =
+    req.cookies?.accessToken || req.headers.authorization?.split(" ")[1]; // ✅ Get token from cookie or header
 
-  console.log("🔹 Verifying token:", token ? `Token exists: ${token}` : "No token");
+  console.log(
+    "🔹 Verifying token:",
+    token ? `Token exists: ${token}` : "No token"
+  );
 
   if (!token) {
     console.error("❌ No token provided");
-    return res.status(401).json("Not authenticated!");
+    return res.status(401).json({ error: "Not authenticated!" });
   }
 
   try {
     const userInfo = jwt.verify(token, process.env.JWT_SECRET);
-    console.log("✅ Token verified for user:", userInfo.id, "Token Expires At:", new Date(userInfo.exp * 1000));
+    console.log(
+      "✅ Token verified for user:",
+      userInfo.id,
+      "Token Expires At:",
+      new Date(userInfo.exp * 1000)
+    );
 
-    // ✅ Add userInfo to request object for controller usage
-    req.userInfo = userInfo;
-    next();
+    req.userInfo = userInfo; // ✅ Add user info to request
+    next(); // Proceed to controller
   } catch (err) {
     if (err.name === "TokenExpiredError") {
       console.error("❌ Token has expired!");
-      return res.status(403).json("Token expired. Please login again.");
+      return res.status(403).json({ error: "Token expired. Please login again." });
     }
     console.error("❌ Token verification failed:", err.message);
-    return res.status(403).json("Token is not valid!");
+    return res.status(403).json({ error: "Token is not valid!" });
   }
 };
