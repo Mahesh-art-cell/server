@@ -141,36 +141,48 @@
   // });
 
 
+  
+
   import express from "express";
 import cors from "cors";
 import cookieParser from "cookie-parser";
 import dotenv from "dotenv";
-import fileUpload from "express-fileupload";
+import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
+import { dirname } from "path";
 
-// Get current directory name (for ES modules)
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+// Import Routes
+import authRoutes from "./routes/auth.js";
+import userRoutes from "./routes/users.js";
+import postRoutes from "./routes/posts.js";
+import commentRoutes from "./routes/comments.js";
+import likeRoutes from "./routes/likes.js";
+import storyRoutes from "./routes/stories.js";
+import relationshipRoutes from "./routes/relationships.js";
+import uploadRoutes from "./routes/upload.js";
 
 dotenv.config(); // ✅ Load .env variables
 
 const app = express();
 
+// Get current directory
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+
+// Ensure upload directory exists
+const uploadDir = path.join(__dirname, "public/upload");
+if (!fs.existsSync(uploadDir)) {
+  fs.mkdirSync(uploadDir, { recursive: true });
+}
+
 // ✅ Middleware Setup
 app.use(express.json());
 app.use(cookieParser());
 
-// ✅ File Upload Middleware
-app.use(fileUpload({
-  limits: { fileSize: 10 * 1024 * 1024 }, // 10MB file size limit
-  useTempFiles: true,
-  tempFileDir: '/tmp/',
-  createParentPath: true
-}));
-
 // ✅ Serve Static Files (for uploaded images)
-app.use("/upload", express.static(path.join(__dirname, "public/upload")));
+app.use(express.static("public"));
+app.use("/upload", express.static("public/upload"));
 
 // ✅ Allowed Origins
 const whitelist = [
@@ -196,17 +208,6 @@ app.use(
   })
 );
 
-// ✅ Import Routes
-import authRoutes from "./routes/auth.js";
-import userRoutes from "./routes/users.js";
-import postRoutes from "./routes/posts.js";
-import commentRoutes from "./routes/comments.js";
-import likeRoutes from "./routes/likes.js";
-import storyRoutes from "./routes/stories.js";
-import relationshipRoutes from "./routes/relationships.js";
-import uploadRoutes from "./routes/upload.js"; // Added upload routes
-
-
 // ✅ API Routes
 app.use("/api/auth", authRoutes);
 app.use("/api/users", userRoutes);
@@ -215,16 +216,7 @@ app.use("/api/comments", commentRoutes);
 app.use("/api/likes", likeRoutes);
 app.use("/api/stories", storyRoutes);
 app.use("/api/relationships", relationshipRoutes);
-app.use("/api/upload", uploadRoutes); // Added upload route
-
-// ✅ Error handling middleware
-app.use((err, req, res, next) => {
-  console.error("Error:", err);
-  res.status(500).json({
-    status: "error",
-    message: err.message || "Something went wrong!"
-  });
-});
+app.use("/api/upload", uploadRoutes);
 
 // ✅ Test Route
 app.get("/", (req, res) => {
