@@ -234,58 +234,50 @@ export const getPosts = (req, res) => {
 // ✅ Add New Post with Token Authentication
 // ✅ Add New Post with Debugging
 export const addPost = (req, res) => {
-  // Extract token from cookies or headers
-  const token =
-    req.cookies?.accessToken ||
-    req.headers?.authorization?.split(" ")[1];
+  // Get token from cookies or authorization header
+  const token = req.cookies.accessToken || req.headers.authorization?.split(" ")[1];
 
+  // ✅ Check if token is missing
   if (!token) {
-    return res.status(401).json("❌ Not logged in! Token missing.");
+    return res.status(401).json({ error: "Not logged in!" });
   }
 
-  // ✅ Verify JWT Token
+  // ✅ Verify token
   jwt.verify(token, process.env.JWT_SECRET, (err, userInfo) => {
     if (err) {
-      console.error("❌ Invalid Token:", err);
-      return res.status(403).json("Token is not valid!");
+      return res.status(403).json({ error: "Token is not valid!" });
     }
 
-    // ✅ Validate post content or image
-    if (!req.body.content && !req.body.img) {
-      return res.status(400).json("⚠️ Post must have content or image.");
+    // ✅ Validate request body (title and content are required)
+    if (!req.body.title || !req.body.content) {
+      return res.status(400).json({ error: "Title and content are required!" });
     }
 
-    // ✅ Prepare SQL query to insert post
-    const q =
-      "INSERT INTO posts(`content`, `img`, `createdAt`, `userId`) VALUES (?)";
+    // ✅ Prepare SQL Query and Values
+    const q = "INSERT INTO posts(`title`, `content`, `img`, `createdAt`, `userId`) VALUES (?)";
     const values = [
-      req.body.content || "", // Content or empty
-      req.body.img || null, // Image URL or null
-      moment().format("YYYY-MM-DD HH:mm:ss"), // Timestamp
-      userInfo.id, // Extracted from token
+      req.body.title,
+      req.body.content,
+      req.body.img || null, // Optional image URL
+      moment().format("YYYY-MM-DD HH:mm:ss"),
+      userInfo.id,
     ];
 
-    // ✅ Log query before execution
-    console.log("📢 Attempting to insert post with values:", values);
-
-    // ✅ Execute query
+    // ✅ Execute the Query
     db.query(q, [values], (err, data) => {
       if (err) {
-        console.error("❌ Database Error:", err.sqlMessage || err);
-        console.error("⚠️ Query:", q, values);
-        return res.status(500).json("Failed to create post.");
+        console.error("❌ Database Error:", err);
+        return res.status(500).json({ error: "Failed to create post" });
       }
 
-      // ✅ Success Response
-      console.log("✅ Post inserted successfully! ID:", data.insertId);
+      // ✅ Return success response
       return res.status(200).json({
-        message: "✅ Post has been created successfully!",
+        message: "Post has been created successfully",
         postId: data.insertId,
       });
     });
   });
 };
-
 
 // Delete Post
 export const deletePost = (req, res) => {
