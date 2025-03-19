@@ -232,8 +232,13 @@ export const getPosts = (req, res) => {
 
 
 // ✅ Add New Post with Token Authentication
+import { db } from "../connect.js";
+import jwt from "jsonwebtoken";
+import moment from "moment";
+
+// ✅ Add New Post with Debugging
 export const addPost = (req, res) => {
-  // Check for token in cookies or authorization header
+  // Extract token from cookies or headers
   const token =
     req.cookies?.accessToken ||
     req.headers?.authorization?.split(" ")[1];
@@ -242,36 +247,41 @@ export const addPost = (req, res) => {
     return res.status(401).json("❌ Not logged in! Token missing.");
   }
 
-  // ✅ Verify JWT token
+  // ✅ Verify JWT Token
   jwt.verify(token, process.env.JWT_SECRET, (err, userInfo) => {
     if (err) {
       console.error("❌ Invalid Token:", err);
       return res.status(403).json("Token is not valid!");
     }
 
-    // ✅ Validate request body content
+    // ✅ Validate post content or image
     if (!req.body.content && !req.body.img) {
-      return res.status(400).json("⚠️ Post must have content or an image.");
+      return res.status(400).json("⚠️ Post must have content or image.");
     }
 
-    // ✅ Prepare SQL query for inserting new post
+    // ✅ Prepare SQL query to insert post
     const q =
       "INSERT INTO posts(`content`, `img`, `createdAt`, `userId`) VALUES (?)";
     const values = [
-      req.body.content || "", // Content or empty string
+      req.body.content || "", // Content or empty
       req.body.img || null, // Image URL or null
-      moment().format("YYYY-MM-DD HH:mm:ss"), // Current timestamp
-      userInfo.id, // User ID extracted from token
+      moment().format("YYYY-MM-DD HH:mm:ss"), // Timestamp
+      userInfo.id, // Extracted from token
     ];
 
-    // ✅ Insert into database
+    // ✅ Log query before execution
+    console.log("📢 Attempting to insert post with values:", values);
+
+    // ✅ Execute query
     db.query(q, [values], (err, data) => {
       if (err) {
-        console.error("❌ Database Error:", err);
+        console.error("❌ Database Error:", err.sqlMessage || err);
+        console.error("⚠️ Query:", q, values);
         return res.status(500).json("Failed to create post.");
       }
 
       // ✅ Success Response
+      console.log("✅ Post inserted successfully! ID:", data.insertId);
       return res.status(200).json({
         message: "✅ Post has been created successfully!",
         postId: data.insertId,
