@@ -131,177 +131,64 @@
 
 
 
-// import { db } from "../connect.js";
-// import jwt from "jsonwebtoken";
-// import moment from "moment";
-
-// // Get Posts (feed or by userId)
-// export const getPosts = (req, res) => {
-//   const userId = req.query.userId;
-//   const token = req.cookies.accessToken || req.headers.authorization?.split(" ")[1];
-
-//   if (!token) {
-//     return res.status(401).json("Not logged in!");
-//   }
-
-//   try {
-//     const userInfo = jwt.verify(token, process.env.JWT_SECRET);
-    
-//     let q;
-//     let values;
-
-//     if (userId) {
-//       // Get posts for a specific user
-//       q = `
-//         SELECT p.*, u.id AS userId, u.name, u.profilePic 
-//         FROM posts AS p 
-//         JOIN users AS u ON (p.userId = u.id)
-//         WHERE p.userId = ? 
-//         ORDER BY p.createdAt DESC
-//       `;
-//       values = [userId];
-//     } else {
-//       // Get feed posts (from user and followed users)
-//       q = `
-//         SELECT p.*, u.id AS userId, u.name, u.profilePic 
-//         FROM posts AS p 
-//         JOIN users AS u ON (p.userId = u.id)
-//         LEFT JOIN relationships AS r ON (p.userId = r.followedUserId)
-//         WHERE p.userId = ? OR r.followerUserId = ?
-//         GROUP BY p.id
-//         ORDER BY p.createdAt DESC
-//       `;
-//       values = [userInfo.id, userInfo.id];
-//     }
-
-//     db.query(q, values, (err, data) => {
-//       if (err) {
-//         console.error("Database Error:", err);
-//         return res.status(500).json("Database error!");
-//       }
-
-//       return res.status(200).json(data);
-//     });
-//   } catch (err) {
-//     console.error("Token Verification Failed:", err.message);
-//     return res.status(403).json("Token is not valid!");
-//   }
-// };
-
-// // Add Post
-// export const addPost = (req, res) => {
-//   const token = req.cookies.accessToken || req.headers.authorization?.split(" ")[1];
-
-//   if (!token) {
-//     return res.status(401).json("Not logged in!");
-//   }
-
-//   jwt.verify(token, process.env.JWT_SECRET, (err, userInfo) => {
-//     if (err) {
-//       return res.status(403).json("Token is not valid!");
-//     }
-
-//     // Validate request body
-//     if (!req.body.content && !req.body.img) {
-//       return res.status(400).json("Post must have content or image");
-//     }
-
-//     const q = "INSERT INTO posts(`content`, `img`, `createdAt`, `userId`) VALUES (?)";
-//     const values = [
-//       req.body.content || "",
-//       req.body.img || null,
-//       moment().format("YYYY-MM-DD HH:mm:ss"),
-//       userInfo.id,
-//     ];
-
-//     db.query(q, [values], (err, data) => {
-//       if (err) {
-//         console.error("Database Error:", err);
-//         return res.status(500).json("Failed to create post");
-//       }
-
-//       return res.status(200).json({
-//         message: "Post has been created successfully",
-//         postId: data.insertId
-//       });
-//     });
-//   });
-// };
-
-// // Delete Post
-// export const deletePost = (req, res) => {
-//   const token = req.cookies.accessToken || req.headers.authorization?.split(" ")[1];
-
-//   if (!token) {
-//     return res.status(401).json("Not logged in!");
-//   }
-
-//   jwt.verify(token, process.env.JWT_SECRET, (err, userInfo) => {
-//     if (err) {
-//       return res.status(403).json("Token is not valid!");
-//     }
-
-//     const postId = req.params.id;
-//     const q = "DELETE FROM posts WHERE `id` = ? AND `userId` = ?";
-
-//     db.query(q, [postId, userInfo.id], (err, data) => {
-//       if (err) {
-//         console.error("Database Error:", err);
-//         return res.status(500).json("Failed to delete post");
-//       }
-      
-//       if (data.affectedRows === 0) {
-//         return res.status(403).json("You can only delete your own posts!");
-//       }
-
-//       return res.status(200).json("Post has been deleted successfully");
-//     });
-//   });
-// };
-
-
-
 import { db } from "../connect.js";
+import jwt from "jsonwebtoken";
 import moment from "moment";
 
-// ✅ Get Posts (Home Feed or User Posts)
+// Get Posts (feed or by userId)
 export const getPosts = (req, res) => {
   const userId = req.query.userId;
-  let q;
-  let values;
+  const token = req.cookies.accessToken || req.headers.authorization?.split(" ")[1];
 
-  if (userId) {
-    // Get posts for a specific user
-    q = `
-      SELECT p.*, u.id AS userId, u.name, u.profilePic 
-      FROM posts AS p 
-      JOIN users AS u ON (p.userId = u.id)
-      WHERE p.userId = ? 
-      ORDER BY p.createdAt DESC
-    `;
-    values = [userId];
-  } else {
-    // Get home feed (from user and followed users)
-    q = `
-      SELECT p.*, u.id AS userId, u.name, u.profilePic 
-      FROM posts AS p 
-      JOIN users AS u ON (p.userId = u.id)
-      ORDER BY p.createdAt DESC
-    `;
-    values = [];
+  if (!token) {
+    return res.status(401).json("Not logged in!");
   }
 
-  db.query(q, values, (err, data) => {
-    if (err) {
-      console.error("❌ Database Error:", err);
-      return res.status(500).json("Database error!");
+  try {
+    const userInfo = jwt.verify(token, process.env.JWT_SECRET);
+    
+    let q;
+    let values;
+
+    if (userId) {
+      // Get posts for a specific user
+      q = `
+        SELECT p.*, u.id AS userId, u.name, u.profilePic 
+        FROM posts AS p 
+        JOIN users AS u ON (p.userId = u.id)
+        WHERE p.userId = ? 
+        ORDER BY p.createdAt DESC
+      `;
+      values = [userId];
+    } else {
+      // Get feed posts (from user and followed users)
+      q = `
+        SELECT p.*, u.id AS userId, u.name, u.profilePic 
+        FROM posts AS p 
+        JOIN users AS u ON (p.userId = u.id)
+        LEFT JOIN relationships AS r ON (p.userId = r.followedUserId)
+        WHERE p.userId = ? OR r.followerUserId = ?
+        GROUP BY p.id
+        ORDER BY p.createdAt DESC
+      `;
+      values = [userInfo.id, userInfo.id];
     }
 
-    return res.status(200).json(data);
-  });
+    db.query(q, values, (err, data) => {
+      if (err) {
+        console.error("Database Error:", err);
+        return res.status(500).json("Database error!");
+      }
+
+      return res.status(200).json(data);
+    });
+  } catch (err) {
+    console.error("Token Verification Failed:", err.message);
+    return res.status(403).json("Token is not valid!");
+  }
 };
 
-// ✅ Add New Post
+// Add Post
 export const addPost = (req, res) => {
   const token = req.cookies.accessToken || req.headers.authorization?.split(" ")[1];
 
@@ -340,21 +227,37 @@ export const addPost = (req, res) => {
     });
   });
 };
-// ✅ Delete Post
+
+// Delete Post
 export const deletePost = (req, res) => {
-  const postId = req.params.id;
-  const q = "DELETE FROM posts WHERE `id` = ? AND `userId` = ?";
+  const token = req.cookies.accessToken || req.headers.authorization?.split(" ")[1];
 
-  db.query(q, [postId, req.body.userId], (err, data) => {
+  if (!token) {
+    return res.status(401).json("Not logged in!");
+  }
+
+  jwt.verify(token, process.env.JWT_SECRET, (err, userInfo) => {
     if (err) {
-      console.error("❌ Database Error:", err);
-      return res.status(500).json("Failed to delete post.");
+      return res.status(403).json("Token is not valid!");
     }
 
-    if (data.affectedRows === 0) {
-      return res.status(403).json("You can only delete your own posts!");
-    }
+    const postId = req.params.id;
+    const q = "DELETE FROM posts WHERE `id` = ? AND `userId` = ?";
 
-    return res.status(200).json("✅ Post deleted successfully.");
+    db.query(q, [postId, userInfo.id], (err, data) => {
+      if (err) {
+        console.error("Database Error:", err);
+        return res.status(500).json("Failed to delete post");
+      }
+      
+      if (data.affectedRows === 0) {
+        return res.status(403).json("You can only delete your own posts!");
+      }
+
+      return res.status(200).json("Post has been deleted successfully");
+    });
   });
 };
+
+
+
