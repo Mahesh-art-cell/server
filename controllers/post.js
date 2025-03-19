@@ -189,44 +189,97 @@ export const getPosts = (req, res) => {
 };
 
 // Add Post
+// export const addPost = (req, res) => {
+//   const token = req.cookies.accessToken || req.headers.authorization?.split(" ")[1];
+
+//   if (!token) {
+//     return res.status(401).json("Not logged in!");
+//   }
+
+//   jwt.verify(token, process.env.JWT_SECRET, (err, userInfo) => {
+//     if (err) {
+//       return res.status(403).json("Token is not valid!");
+//     }
+
+//     // Validate request body
+//     if (!req.body.content && !req.body.img) {
+//       return res.status(400).json("Post must have content or image");
+//     }
+
+//     const q = "INSERT INTO posts(`content`, `img`, `createdAt`, `userId`) VALUES (?)";
+//     const values = [
+//       req.body.content || "",
+//       req.body.img || null,
+//       moment().format("YYYY-MM-DD HH:mm:ss"),
+//       userInfo.id,
+//     ];
+
+//     db.query(q, [values], (err, data) => {
+//       if (err) {
+//         console.error("Database Error:", err);
+//         return res.status(500).json("Failed to create post");
+//       }
+
+//       return res.status(200).json({
+//         message: "Post has been created successfully",
+//         postId: data.insertId
+//       });
+//     });
+//   });
+// };
+
+
+
+
+// ✅ Add New Post with Token Authentication
 export const addPost = (req, res) => {
-  const token = req.cookies.accessToken || req.headers.authorization?.split(" ")[1];
+  // Check for token in cookies or authorization header
+  const token =
+    req.cookies?.accessToken ||
+    req.headers?.authorization?.split(" ")[1];
 
   if (!token) {
-    return res.status(401).json("Not logged in!");
+    return res.status(401).json("❌ Not logged in! Token missing.");
   }
 
+  // ✅ Verify JWT token
   jwt.verify(token, process.env.JWT_SECRET, (err, userInfo) => {
     if (err) {
+      console.error("❌ Invalid Token:", err);
       return res.status(403).json("Token is not valid!");
     }
 
-    // Validate request body
+    // ✅ Validate request body content
     if (!req.body.content && !req.body.img) {
-      return res.status(400).json("Post must have content or image");
+      return res.status(400).json("⚠️ Post must have content or an image.");
     }
 
-    const q = "INSERT INTO posts(`content`, `img`, `createdAt`, `userId`) VALUES (?)";
+    // ✅ Prepare SQL query for inserting new post
+    const q =
+      "INSERT INTO posts(`content`, `img`, `createdAt`, `userId`) VALUES (?)";
     const values = [
-      req.body.content || "",
-      req.body.img || null,
-      moment().format("YYYY-MM-DD HH:mm:ss"),
-      userInfo.id,
+      req.body.content || "", // Content or empty string
+      req.body.img || null, // Image URL or null
+      moment().format("YYYY-MM-DD HH:mm:ss"), // Current timestamp
+      userInfo.id, // User ID extracted from token
     ];
 
+    // ✅ Insert into database
     db.query(q, [values], (err, data) => {
       if (err) {
-        console.error("Database Error:", err);
-        return res.status(500).json("Failed to create post");
+        console.error("❌ Database Error:", err);
+        return res.status(500).json("Failed to create post.");
       }
 
+      // ✅ Success Response
       return res.status(200).json({
-        message: "Post has been created successfully",
-        postId: data.insertId
+        message: "✅ Post has been created successfully!",
+        postId: data.insertId,
       });
     });
   });
 };
+
 
 // Delete Post
 export const deletePost = (req, res) => {
