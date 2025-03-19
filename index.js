@@ -149,24 +149,22 @@ import cors from "cors";
 import cookieParser from "cookie-parser";
 import dotenv from "dotenv";
 
-dotenv.config(); // ✅ Load environment variables
+dotenv.config();
 
 const app = express();
 
-// ✅ Middleware Setup
 app.use(express.json());
 app.use(cookieParser());
 
-// ✅ Serve Static Files (for uploaded images)
+// ✅ Serve Static Files for Uploaded Images
 app.use("/upload", express.static("public/upload"));
 
 // ✅ Allowed Origins
 const whitelist = [
-  "http://localhost:3000", // ✅ Local Development
+  "http://localhost:3000", // ✅ Local Dev
   "https://client-brown-seven.vercel.app", // ✅ Deployed Client
 ];
 
-// ✅ CORS Configuration
 app.use(
   cors({
     origin: (origin, callback) => {
@@ -177,10 +175,7 @@ app.use(
         callback(new Error("❌ Not allowed by CORS"));
       }
     },
-    credentials: true, // ✅ Allow Cookies
-    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization"],
-    optionsSuccessStatus: 204,
+    credentials: true,
   })
 );
 
@@ -209,7 +204,6 @@ app.get("/", (req, res) => {
   res.send("Root is working 🚀");
 });
 
-// ✅ Start Server
 const port = process.env.PORT || 8800;
 app.listen(port, () => {
   console.log(`🚀 Server running on http://localhost:${port}`);
