@@ -35,13 +35,14 @@
 import express from "express";
 import multer from "multer";
 import path from "path";
+import { fileURLToPath } from "url";
 
 const router = express.Router();
 
-// ✅ Define storage for uploaded files
+// ✅ Define file upload storage
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
-    cb(null, "public/upload"); // ✅ Save in /public/upload
+    cb(null, "public/upload"); // Uploads go to /public/upload
   },
   filename: function (req, file, cb) {
     cb(null, Date.now() + path.extname(file.originalname)); // Unique filename
@@ -50,12 +51,13 @@ const storage = multer.diskStorage({
 
 const upload = multer({ storage: storage });
 
-// ✅ POST /api/upload (File Upload API)
+// ✅ POST: Handle file upload
 router.post("/", upload.single("file"), (req, res) => {
   if (!req.file) {
     return res.status(400).json({ error: "No file uploaded." });
   }
 
+  // ✅ Return uploaded file's path
   res.status(200).json({
     filename: req.file.filename,
     message: "✅ File uploaded successfully!",
