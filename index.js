@@ -202,7 +202,7 @@ app.use("/api/comments", commentRoutes);
 app.use("/api/likes", likeRoutes);
 app.use("/api/stories", storyRoutes);
 app.use("/api/relationships", relationshipRoutes);
-app.use("api//upload", uploadRoutes);
+app.use("api/upload", uploadRoutes);
 
 // ✅ Test Route
 app.get("/", (req, res) => {
