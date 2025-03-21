@@ -35,49 +35,33 @@
 
 
 
-import express from "express";
 import multer from "multer";
-import cloudinary from "../utils/cloudinary.js";
 import path from "path";
+import express from "express";
 
 const router = express.Router();
 
-// ✅ Multer Configuration
+// ✅ Multer Storage Config
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    cb(null, "uploads/"); // Save locally before sending to Cloudinary
+    cb(null, "public/upload");
   },
   filename: (req, file, cb) => {
-    cb(null, Date.now() + path.extname(file.originalname)); // Unique file name
+    cb(null, Date.now() + path.extname(file.originalname));
   },
 });
 
+// ✅ Upload Middleware
 const upload = multer({ storage });
 
-// ✅ Handle File Upload
-router.post("/", upload.single("file"), async (req, res) => {
-  try {
-    console.log("✅ File Received:", req.file);
-
-    if (!req.file) {
-      return res.status(400).json({ error: "No file uploaded!" });
-    }
-
-    // ✅ Upload to Cloudinary
-    const result = await cloudinary.uploader.upload(req.file.path, {
-      folder: "mern-social-app", // Change folder if needed
-    });
-
-    console.log("✅ Cloudinary Upload Success:", result);
-
-    res.status(200).json({
-      url: result.secure_url,
-      public_id: result.public_id,
-    });
-  } catch (error) {
-    console.error("❌ Error in Upload Route:", error.message);
-    res.status(500).json({ error: "Failed to upload file." });
+// ✅ Upload Route
+router.post("/", upload.single("file"), (req, res) => {
+  if (!req.file) {
+    return res.status(400).json({ error: "No file uploaded." });
   }
+
+  const fileUrl = `/upload/${req.file.filename}`;
+  res.status(200).json({ url: fileUrl });
 });
 
 export default router;
