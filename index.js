@@ -148,6 +148,7 @@ import express from "express";
 import cors from "cors";
 import cookieParser from "cookie-parser";
 import dotenv from "dotenv";
+import path from "path";
 
 dotenv.config(); // ✅ Load environment variables
 
@@ -158,7 +159,7 @@ app.use(express.json());
 app.use(cookieParser());
 
 // ✅ Serve Static Files (for uploaded images)
-app.use("/upload", express.static("public/upload"));
+app.use("/upload", express.static(path.join(process.cwd(), "public/upload"))); // ✅ Correct path usage
 
 // ✅ Allowed Origins
 const whitelist = [

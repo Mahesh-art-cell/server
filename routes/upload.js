@@ -10,7 +10,7 @@ const storage = multer.diskStorage({
     cb(null, "public/upload"); // ✅ Save files in /public/upload
   },
   filename: function (req, file, cb) {
-    cb(null, Date.now() + path.extname(file.originalname)); // Unique file name
+    cb(null, Date.now() + path.extname(file.originalname)); // ✅ Unique file name
   },
 });
 
@@ -22,6 +22,7 @@ router.post("/", upload.single("file"), (req, res) => {
     return res.status(400).json({ error: "No file uploaded." });
   }
 
+  // ✅ Return correct file path in response
   res.status(200).json({
     filename: req.file.filename,
     message: "✅ File uploaded successfully!",
