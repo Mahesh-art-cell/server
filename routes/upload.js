@@ -37,24 +37,15 @@
 
 import express from "express";
 import multer from "multer";
-import dotenv from "dotenv";
-import { v2 as cloudinary } from "cloudinary";
+import cloudinary from "../utils/cloudinary.js";
 import fs from "fs";
 
-dotenv.config();
 const router = express.Router();
 
-// ✅ Cloudinary Configuration
-cloudinary.config({
-  cloud_name: process.env.CLOUD_NAME,
-  api_key: process.env.API_KEY,
-  api_secret: process.env.API_SECRET,
-});
-
-// ✅ Multer Configuration
+// ✅ Multer Storage
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    cb(null, "uploads/");
+    cb(null, "uploads/"); // Save locally before uploading to Cloudinary
   },
   filename: (req, file, cb) => {
     cb(null, Date.now() + "-" + file.originalname);
@@ -63,9 +54,16 @@ const storage = multer.diskStorage({
 
 const upload = multer({ storage });
 
-// ✅ Upload to Cloudinary
+// ✅ Upload Route
 router.post("/", upload.single("file"), async (req, res) => {
   try {
+    if (!req.file) {
+      console.error("❌ No File Uploaded");
+      return res.status(400).json({ error: "No file uploaded" });
+    }
+
+    console.log("📸 Uploading to Cloudinary...");
+
     const result = await cloudinary.uploader.upload(req.file.path, {
       folder: "mern-social-media",
     });
