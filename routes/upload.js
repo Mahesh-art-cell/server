@@ -1,16 +1,18 @@
+
+
 // import express from "express";
 // import multer from "multer";
 // import path from "path";
 
 // const router = express.Router();
 
-// // ✅ Define storage for uploaded files
+// // ✅ Define storage location and filename for uploaded files
 // const storage = multer.diskStorage({
 //   destination: function (req, file, cb) {
-//     cb(null, "public/upload"); // ✅ Save files in /public/upload
+//     cb(null, "public/upload"); // ✅ Save to /public/upload folder
 //   },
 //   filename: function (req, file, cb) {
-//     cb(null, Date.now() + path.extname(file.originalname)); // ✅ Unique file name
+//     cb(null, Date.now() + path.extname(file.originalname)); // Unique filename
 //   },
 // });
 
@@ -22,10 +24,9 @@
 //     return res.status(400).json({ error: "No file uploaded." });
 //   }
 
-//   // ✅ Return correct file path in response
 //   res.status(200).json({
 //     filename: req.file.filename,
-//     message: "✅ File uploaded successfully!",
+//     message: "File uploaded successfully",
 //   });
 // });
 
@@ -34,35 +35,35 @@
 
 
 
-
 import express from "express";
-import multer from "multer";
-import path from "path";
+// import { upload } from "../utils/multer.js";
+import { upload } from "../utils/multer.js";
+import { uploadToCloudinary } from "../utils/cloudinary.js";
+import fs from "fs";
 
 const router = express.Router();
 
-// ✅ Define storage location and filename for uploaded files
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    cb(null, "public/upload"); // ✅ Save to /public/upload folder
-  },
-  filename: function (req, file, cb) {
-    cb(null, Date.now() + path.extname(file.originalname)); // Unique filename
-  },
-});
+// ✅ Upload image and return URL
+router.post("/", upload.single("file"), async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ error: "No file uploaded!" });
+    }
 
-const upload = multer({ storage: storage });
+    // ✅ Upload to Cloudinary
+    const imageUrl = await uploadToCloudinary(req.file.path);
 
-// ✅ Handle File Upload - POST /upload
-router.post("/", upload.single("file"), (req, res) => {
-  if (!req.file) {
-    return res.status(400).json({ error: "No file uploaded." });
+    // ✅ Delete temp file after upload
+    fs.unlinkSync(req.file.path);
+
+    return res.status(200).json({
+      message: "✅ File uploaded successfully!",
+      imageUrl: imageUrl,
+    });
+  } catch (error) {
+    console.error("❌ Upload Error:", error);
+    return res.status(500).json({ error: "Failed to upload image" });
   }
-
-  res.status(200).json({
-    filename: req.file.filename,
-    message: "File uploaded successfully",
-  });
 });
 
 export default router;
