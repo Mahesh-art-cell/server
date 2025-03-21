@@ -37,34 +37,49 @@
 
 import express from "express";
 import multer from "multer";
+import dotenv from "dotenv";
 import { v2 as cloudinary } from "cloudinary";
+import fs from "fs";
 
+dotenv.config();
 const router = express.Router();
 
+// ✅ Cloudinary Configuration
+cloudinary.config({
+  cloud_name: process.env.CLOUD_NAME,
+  api_key: process.env.API_KEY,
+  api_secret: process.env.API_SECRET,
+});
+
 // ✅ Multer Configuration
-const storage = multer.memoryStorage();
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, "uploads/");
+  },
+  filename: (req, file, cb) => {
+    cb(null, Date.now() + "-" + file.originalname);
+  },
+});
+
 const upload = multer({ storage });
 
 // ✅ Upload to Cloudinary
 router.post("/", upload.single("file"), async (req, res) => {
   try {
-    if (!req.file) {
-      return res.status(400).json("No file uploaded!");
-    }
+    const result = await cloudinary.uploader.upload(req.file.path, {
+      folder: "mern-social-media",
+    });
 
-    const result = await cloudinary.uploader.upload_stream(
-      { resource_type: "auto", folder: "social_app" },
-      (error, result) => {
-        if (error) {
-          console.error("❌ Cloudinary Upload Error:", error);
-          return res.status(500).json("Upload to Cloudinary failed.");
-        }
-        res.status(200).json({ imageUrl: result.secure_url });
-      }
-    ).end(req.file.buffer);
+    // ✅ Remove file after uploading to Cloudinary
+    fs.unlinkSync(req.file.path);
+
+    res.status(200).json({
+      url: result.secure_url,
+      public_id: result.public_id,
+    });
   } catch (error) {
-    console.error("❌ Error during upload:", error);
-    res.status(500).json("Internal Server Error.");
+    console.error("❌ Upload Error:", error);
+    res.status(500).json({ error: "Failed to upload image" });
   }
 });
 
