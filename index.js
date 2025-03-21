@@ -194,6 +194,10 @@ import likeRoutes from "./routes/likes.js";
 import storyRoutes from "./routes/stories.js";
 import relationshipRoutes from "./routes/relationships.js";
 import uploadRoutes from "./routes/upload.js";
+import mediaRoutes from "./routes/media.js";
+
+// ✅ API Routes
+
 
 // ✅ API Routes
 app.use("/api/auth", authRoutes);
@@ -204,6 +208,7 @@ app.use("/api/likes", likeRoutes);
 app.use("/api/stories", storyRoutes);
 app.use("/api/relationships", relationshipRoutes);
 app.use("/api/upload", uploadRoutes);
+app.use("/api/media", mediaRoutes);
 
 // ✅ Test Route
 app.get("/", (req, res) => {
