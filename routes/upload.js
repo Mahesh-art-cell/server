@@ -36,51 +36,35 @@
 
 
 import express from "express";
-import { v2 as cloudinary } from "cloudinary";
 import multer from "multer";
-import dotenv from "dotenv";
-
-dotenv.config();
+import { v2 as cloudinary } from "cloudinary";
 
 const router = express.Router();
 
-// ✅ Cloudinary Configuration
-cloudinary.config({
-  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-  api_key: process.env.CLOUDINARY_API_KEY,
-  api_secret: process.env.CLOUDINARY_API_SECRET,
-});
-
-// ✅ Multer Storage Configuration (optional, for file upload before Cloudinary)
+// ✅ Multer Configuration
 const storage = multer.memoryStorage();
 const upload = multer({ storage });
 
-// ✅ Upload API
+// ✅ Upload to Cloudinary
 router.post("/", upload.single("file"), async (req, res) => {
   try {
-    const file = req.file;
-    if (!file) {
-      return res.status(400).json({ error: "No file uploaded." });
+    if (!req.file) {
+      return res.status(400).json("No file uploaded!");
     }
 
-    // ✅ Upload to Cloudinary
     const result = await cloudinary.uploader.upload_stream(
-      { resource_type: "auto", folder: "social_media" },
+      { resource_type: "auto", folder: "social_app" },
       (error, result) => {
         if (error) {
-          console.error("❌ Cloudinary Error:", error);
-          return res.status(500).json({ error: "Upload failed!" });
+          console.error("❌ Cloudinary Upload Error:", error);
+          return res.status(500).json("Upload to Cloudinary failed.");
         }
-
-        console.log("✅ Upload Successful:", result.url);
-
-        // ✅ Return the uploaded Cloudinary URL
         res.status(200).json({ imageUrl: result.secure_url });
       }
-    ).end(file.buffer);
+    ).end(req.file.buffer);
   } catch (error) {
-    console.error("❌ Upload Error:", error);
-    res.status(500).json({ error: "Error uploading to Cloudinary" });
+    console.error("❌ Error during upload:", error);
+    res.status(500).json("Internal Server Error.");
   }
 });
 
