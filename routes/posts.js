@@ -37,8 +37,10 @@
 
 
 import express from "express";
-import { db } from "../db.js";
-import { verifyToken } from "../middleware/auth.js";
+// import { db } from "../db.js";
+import {db} from "../connect.js"
+// import { verifyToken } from "../middleware/auth.js";
+import {verifyToken} from "../middleware/verifyToken.js"
 
 const router = express.Router();
 
