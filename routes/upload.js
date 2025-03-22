@@ -35,33 +35,38 @@
 
 
 
-import multer from "multer";
-import path from "path";
+// ✅ Upload Route with Cloudinary
 import express from "express";
+import multer from "multer";
+import cloudinary from "../utils/cloudinary.js"; // ✅ Import Cloudinary
 
 const router = express.Router();
 
-// ✅ Multer Storage Config
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, "public/upload");
-  },
-  filename: (req, file, cb) => {
-    cb(null, Date.now() + path.extname(file.originalname));
-  },
-});
-
-// ✅ Upload Middleware
+// ✅ Configure Multer to store file temporarily
+const storage = multer.diskStorage({});
 const upload = multer({ storage });
 
-// ✅ Upload Route
-router.post("/", upload.single("file"), (req, res) => {
-  if (!req.file) {
-    return res.status(400).json({ error: "No file uploaded." });
-  }
+// ✅ Cloudinary Upload API
+router.post("/", upload.single("file"), async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ error: "No file uploaded." });
+    }
 
-  const fileUrl = `/upload/${req.file.filename}`;
-  res.status(200).json({ url: fileUrl });
+    // ✅ Upload file to Cloudinary
+    const result = await cloudinary.uploader.upload(req.file.path, {
+      folder: "social_media_uploads", // Optional: Organize files into a folder
+      resource_type: "auto", // Detect image or video
+    });
+
+    console.log("✅ File Uploaded to Cloudinary:", result.url);
+
+    // ✅ Return URL to frontend
+    res.status(200).json({ url: result.secure_url });
+  } catch (error) {
+    console.error("❌ Cloudinary Upload Error:", error);
+    res.status(500).json({ error: "Failed to upload file to Cloudinary." });
+  }
 });
 
 export default router;
