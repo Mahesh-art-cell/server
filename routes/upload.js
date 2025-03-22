@@ -39,17 +39,18 @@
 // export default router;
 
 
+// 📌 Import required modules
 import express from "express";
 import { v2 as cloudinary } from "cloudinary";
 import multer from "multer";
 import dotenv from "dotenv";
 import streamifier from "streamifier";
 
-dotenv.config();
+dotenv.config(); // ✅ Load .env variables
 
 const router = express.Router();
 
-// ✅ Configure Cloudinary
+// ✅ Cloudinary Configuration
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
   api_key: process.env.CLOUDINARY_API_KEY,
@@ -57,20 +58,27 @@ cloudinary.config({
 });
 
 // ✅ Multer Storage Setup
-const storage = multer.memoryStorage(); // Store file in memory
+const storage = multer.memoryStorage(); // ✅ Store file in memory
 const upload = multer({ storage });
 
-// ✅ Upload to Cloudinary Function
+// ✅ Function to Upload to Cloudinary
 const uploadToCloudinary = (buffer) => {
   return new Promise((resolve, reject) => {
     const stream = cloudinary.uploader.upload_stream(
-      { folder: "social_media" }, // ✅ Folder in Cloudinary
+      {
+        folder: "social_media", // ✅ Folder where the image is stored
+      },
       (error, result) => {
-        if (result) resolve(result);
-        else reject(error);
+        if (result) {
+          console.log("✅ Cloudinary Upload Successful:", result.secure_url);
+          resolve(result);
+        } else {
+          console.error("❌ Cloudinary Upload Error:", error.message);
+          reject(error);
+        }
       }
     );
-    streamifier.createReadStream(buffer).pipe(stream);
+    streamifier.createReadStream(buffer).pipe(stream); // ✅ Pipe buffer to Cloudinary
   });
 };
 
@@ -79,6 +87,7 @@ router.post("/", upload.single("file"), async (req, res) => {
   try {
     console.log("📢 Incoming Upload Request...");
 
+    // ✅ Check if a file was uploaded
     if (!req.file) {
       console.error("❌ No file received!");
       return res.status(400).json({ error: "No file uploaded." });
@@ -87,13 +96,12 @@ router.post("/", upload.single("file"), async (req, res) => {
     console.log("📢 Uploading to Cloudinary...");
     const result = await uploadToCloudinary(req.file.buffer);
 
-    console.log("✅ Cloudinary Upload Successful:", result.secure_url);
+    console.log("✅ Cloudinary Upload URL:", result.secure_url);
     res.status(200).json({ url: result.secure_url });
   } catch (error) {
-    console.error("❌ Cloudinary Upload Error:", error.message);
+    console.error("❌ Upload Error:", error.message);
     res.status(500).json({ error: "Failed to upload media." });
   }
 });
-
 
 export default router;
