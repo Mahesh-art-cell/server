@@ -159,7 +159,7 @@ app.use(express.json());
 app.use(cookieParser());
 
 // ✅ Serve Static Files (for uploaded images)
-app.use("/upload", express.static(path.join(process.cwd(), "public/upload"))); // ✅ Correct path usage
+app.use("/upload", express.static(path.resolve("public/upload"))); // ✅ Corrected path
 
 // ✅ Allowed Origins
 const whitelist = [
@@ -172,9 +172,9 @@ app.use(
   cors({
     origin: (origin, callback) => {
       if (!origin || whitelist.includes(origin)) {
-        callback(null, true);
+        callback(null, true); // ✅ Allowed Origin
       } else {
-        console.log("❌ Blocked by CORS - Origin:", origin);
+        console.error("❌ Blocked by CORS - Origin:", origin);
         callback(new Error("❌ Not allowed by CORS"));
       }
     },
@@ -197,9 +197,6 @@ import uploadRoutes from "./routes/upload.js";
 import mediaRoutes from "./routes/media.js";
 
 // ✅ API Routes
-
-
-// ✅ API Routes
 app.use("/api/auth", authRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/posts", postRoutes);
@@ -213,6 +210,12 @@ app.use("/api/media", mediaRoutes);
 // ✅ Test Route
 app.get("/", (req, res) => {
   res.send("Root is working 🚀");
+});
+
+// ✅ Global Error Handling Middleware
+app.use((err, req, res, next) => {
+  console.error("❌ Server Error:", err.message);
+  res.status(500).json({ error: "Internal Server Error" });
 });
 
 // ✅ Start Server

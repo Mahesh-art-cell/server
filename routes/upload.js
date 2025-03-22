@@ -49,9 +49,9 @@ const router = express.Router();
 
 // ✅ Configure Cloudinary
 cloudinary.v2.config({
-  cloud_name: "YOUR_CLOUD_NAME",
-  api_key: "YOUR_API_KEY",
-  api_secret: "YOUR_API_SECRET",
+  cloud_name: process.env.CLOUD_NAME,
+  api_key: process.env.CLOUD_API_KEY,
+  api_secret: process.env.CLOUD_API_SECRET,
 });
 
 // ✅ Multer Storage (Optional if Cloudinary is used directly)
@@ -64,15 +64,15 @@ const storage = multer.diskStorage({
     cb(null, uploadDir);
   },
   filename: (req, file, cb) => {
-    cb(null, Date.now() + path.extname(file.originalname)); // Create unique filename
+    cb(null, Date.now() + path.extname(file.originalname)); // Unique filename
   },
 });
 
 // ✅ Multer Middleware to Handle File Uploads
 const upload = multer({ storage });
 
-// ✅ POST /upload Route
-router.post("/upload", upload.single("file"), async (req, res) => {
+// ✅ POST /api/upload Route (Corrected)
+router.post("/", upload.single("file"), async (req, res) => {
   try {
     // ✅ Check if file exists
     if (!req.file) {
