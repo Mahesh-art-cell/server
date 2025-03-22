@@ -13,19 +13,23 @@
 
 
 
+
+
+
 // import express from "express";
-// import { getPosts, addPost, deletePost } from "../controllers/post.js";
-// import { verifyToken } from "../middleware/verifyToken.js";
+// import { getPosts, deletePost, addPost } from "../controllers/post.js";
+// // import { verifyToken } from "../middleware/auth.js";
+// import {verifyToken} from "../middleware/verifyToken.js"
 
 // const router = express.Router();
 
-// // Get posts (feed or specific user)
+// // ✅ Get Posts (Home or Profile)
 // router.get("/", verifyToken, getPosts);
 
-// // Create new post
+// // ✅ Create Post
 // router.post("/", verifyToken, addPost);
 
-// // Delete post
+// // ✅ Delete Post
 // router.delete("/:id", verifyToken, deletePost);
 
 // export default router;
@@ -33,20 +37,43 @@
 
 
 import express from "express";
-import { getPosts, deletePost, addPost } from "../controllers/post.js";
-// import { verifyToken } from "../middleware/auth.js";
-import {verifyToken} from "../middleware/verifyToken.js"
+import { db } from "../db.js";
+import { verifyToken } from "../middleware/auth.js";
 
 const router = express.Router();
 
-// ✅ Get Posts (Home or Profile)
-router.get("/", verifyToken, getPosts);
+// ✅ Create New Post
+router.post("/", verifyToken, async (req, res) => {
+  const { content, img } = req.body;
+  const userId = req.userInfo.id;
 
-// ✅ Create Post
-router.post("/", verifyToken, addPost);
+  console.log("📢 Creating Post - User ID:", userId);
+  console.log("📸 Cloudinary URL:", img);
 
-// ✅ Delete Post
-router.delete("/:id", verifyToken, deletePost);
+  const q =
+    "INSERT INTO posts (`content`, `img`, `userId`, `createdAt`) VALUES (?, ?, ?, NOW())";
+
+  try {
+    const result = await db.query(q, [content, img, userId]);
+    console.log("✅ Post Created Successfully:", result);
+    res.status(200).json({ message: "Post created successfully!" });
+  } catch (error) {
+    console.error("❌ Error Creating Post:", error);
+    res.status(500).json({ error: "Failed to create post." });
+  }
+});
+
+// ✅ Get All Posts
+router.get("/", verifyToken, async (req, res) => {
+  const q = "SELECT * FROM posts ORDER BY createdAt DESC";
+
+  try {
+    const [posts] = await db.query(q);
+    res.status(200).json(posts);
+  } catch (error) {
+    console.error("❌ Error Fetching Posts:", error);
+    res.status(500).json({ error: "Failed to retrieve posts." });
+  }
+});
 
 export default router;
-
