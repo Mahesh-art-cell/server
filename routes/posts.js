@@ -33,17 +33,19 @@
 
 
 import express from "express";
-import { getPosts, addPost, deletePost } from "../controllers/post.js";
+import { getPosts, createPost, deletePost } from "../controllers/post.js";
+import { verifyToken } from "../middleware/auth.js";
 
 const router = express.Router();
 
-// ✅ Get posts (home feed or specific user)
-router.get("/", getPosts);
+// ✅ Get Posts (Home or Profile)
+router.get("/", verifyToken, getPosts);
 
-// ✅ Create new post
-router.post("/", addPost);
+// ✅ Create Post
+router.post("/", verifyToken, createPost);
 
-// ✅ Delete post
-router.delete("/:id", deletePost);
+// ✅ Delete Post
+router.delete("/:id", verifyToken, deletePost);
 
 export default router;
+
