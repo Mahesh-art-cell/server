@@ -199,6 +199,46 @@ export const getPosts = (req, res) => {
 };
 
 // ✅ Add Post
+// export const addPost = (req, res) => {
+//   const token = req.cookies.accessToken || req.headers.authorization?.split(" ")[1];
+
+//   if (!token) {
+//     return res.status(401).json("Not logged in!");
+//   }
+
+//   jwt.verify(token, process.env.JWT_SECRET, (err, userInfo) => {
+//     if (err) {
+//       return res.status(403).json("Token is not valid!");
+//     }
+
+//     if (!req.body.content && !req.body.img) {
+//       return res.status(400).json("Post must have content or image");
+//     }
+
+//     const q = "INSERT INTO posts(`content`, `img`, `createdAt`, `userId`) VALUES (?)";
+//     const values = [
+//       req.body.content || "",
+//       req.body.img || null,
+//       moment().format("YYYY-MM-DD HH:mm:ss"),
+//       userInfo.id,
+//     ];
+
+//     db.query(q, [values], (err, data) => {
+//       if (err) {
+//         console.error("Database Error:", err);
+//         return res.status(500).json("Failed to create post");
+//       }
+
+//       return res.status(200).json({
+//         message: "Post has been created successfully",
+//         postId: data.insertId,
+//       });
+//     });
+//   });
+// };
+
+
+// ✅ Add Post Controller
 export const addPost = (req, res) => {
   const token = req.cookies.accessToken || req.headers.authorization?.split(" ")[1];
 
@@ -212,7 +252,7 @@ export const addPost = (req, res) => {
     }
 
     if (!req.body.content && !req.body.img) {
-      return res.status(400).json("Post must have content or image");
+      return res.status(400).json("Post must have content or image.");
     }
 
     const q = "INSERT INTO posts(`content`, `img`, `createdAt`, `userId`) VALUES (?)";
@@ -225,17 +265,18 @@ export const addPost = (req, res) => {
 
     db.query(q, [values], (err, data) => {
       if (err) {
-        console.error("Database Error:", err);
+        console.error("❌ Database Error:", err);
         return res.status(500).json("Failed to create post");
       }
 
       return res.status(200).json({
-        message: "Post has been created successfully",
+        message: "✅ Post created successfully!",
         postId: data.insertId,
       });
     });
   });
 };
+
 
 // ✅ Delete Post
 export const deletePost = (req, res) => {
