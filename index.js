@@ -168,34 +168,34 @@ const whitelist = [
 ];
 
 // ✅ CORS Configuration
-// app.use(
-//   cors({
-//     origin: (origin, callback) => {
-//       if (!origin || whitelist.includes(origin)) {
-//         callback(null, true);
-//       } else {
-//         console.log("❌ Blocked by CORS - Origin:", origin);
-//         callback(new Error("❌ Not allowed by CORS"));
-//       }
-//     },
-//     credentials: true, // ✅ Allow Cookies
-//     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-//     allowedHeaders: ["Content-Type", "Authorization"],
-//     optionsSuccessStatus: 204,
-//   })
-// );
-
 app.use(
   cors({
-    origin: [
-      "http://localhost:3000", // ✅ Local Development
-      "https://client-brown-seven.vercel.app", // ✅ Deployed Client
-    ],
+    origin: (origin, callback) => {
+      if (!origin || whitelist.includes(origin)) {
+        callback(null, true);
+      } else {
+        console.log("❌ Blocked by CORS - Origin:", origin);
+        callback(new Error("❌ Not allowed by CORS"));
+      }
+    },
     credentials: true, // ✅ Allow Cookies
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
+    optionsSuccessStatus: 204,
   })
 );
+
+// app.use(
+//   cors({
+//     origin: [
+//       "http://localhost:3000", // ✅ Local Development
+//       "https://client-brown-seven.vercel.app", // ✅ Deployed Client
+//     ],
+//     credentials: true, // ✅ Allow Cookies
+//     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+//     allowedHeaders: ["Content-Type", "Authorization"],
+//   })
+// );
 
 
 
