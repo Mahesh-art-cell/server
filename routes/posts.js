@@ -33,8 +33,9 @@
 
 
 import express from "express";
-import { getPosts, createPost, deletePost } from "../controllers/post.js";
-import { verifyToken } from "../middleware/auth.js";
+import { getPosts, deletePost, addPost } from "../controllers/post.js";
+// import { verifyToken } from "../middleware/auth.js";
+import {verifyToken} from "../middleware/verifyToken.js"
 
 const router = express.Router();
 
@@ -42,7 +43,7 @@ const router = express.Router();
 router.get("/", verifyToken, getPosts);
 
 // ✅ Create Post
-router.post("/", verifyToken, createPost);
+router.post("/", verifyToken, addPost);
 
 // ✅ Delete Post
 router.delete("/:id", verifyToken, deletePost);
