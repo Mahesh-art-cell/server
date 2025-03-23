@@ -39,7 +39,9 @@
 // export default router;
 
 
-// 📌 Import required modules
+
+
+// 📢 Import Required Libraries
 import express from "express";
 import { v2 as cloudinary } from "cloudinary";
 import multer from "multer";
@@ -48,13 +50,18 @@ import streamifier from "streamifier";
 
 dotenv.config(); // ✅ Load .env variables
 
-const router = express.Router();
+// ✅ Debug Environment Variables (Add Here)
+console.log("✅ Cloud Name:", process.env.CLOUDINARY_CLOUD_NAME);
+console.log("✅ API Key:", process.env.CLOUDINARY_API_KEY);
+console.log("✅ API Secret:", process.env.CLOUDINARY_API_SECRET);
 
 // ✅ Cloudinary Configuration
 cloudinary.config({
-  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-  api_key: process.env.CLOUDINARY_API_KEY,
-  api_secret: process.env.CLOUDINARY_API_SECRET,
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME, // ✅ Correct Key
+  api_key: process.env.CLOUDINARY_API_KEY,       // ✅ Correct Key
+  api_secret: process.env.CLOUDINARY_API_SECRET, // ✅ Correct Key
+
+
 });
 
 // ✅ Multer Storage Setup
@@ -83,6 +90,7 @@ const uploadToCloudinary = (buffer) => {
 };
 
 // ✅ Upload Route
+const router = express.Router();
 router.post("/", upload.single("file"), async (req, res) => {
   try {
     console.log("📢 Incoming Upload Request...");

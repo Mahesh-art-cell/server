@@ -161,13 +161,13 @@ app.use(cookieParser());
 // ✅ Serve Static Files (for uploaded images)
 app.use("/upload", express.static(path.join(process.cwd(), "public/upload"))); // ✅ Correct path usage
 
-// ✅ Allowed Origins
-const whitelist = [
-  "http://localhost:3000", // ✅ Local Development
-  "https://client-brown-seven.vercel.app", // ✅ Deployed Client
-];
 
 // ✅ CORS Configuration
+const whitelist = [
+  "http://localhost:3000", // ✅ Local Development
+  "https://client-brown-seven.vercel.app", // ✅ Deployed Client URL
+];
+
 app.use(
   cors({
     origin: (origin, callback) => {
@@ -184,18 +184,6 @@ app.use(
     optionsSuccessStatus: 204,
   })
 );
-
-// app.use(
-//   cors({
-//     origin: [
-//       "http://localhost:3000", // ✅ Local Development
-//       "https://client-brown-seven.vercel.app", // ✅ Deployed Client
-//     ],
-//     credentials: true, // ✅ Allow Cookies
-//     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-//     allowedHeaders: ["Content-Type", "Authorization"],
-//   })
-// );
 
 
 
