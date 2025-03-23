@@ -5,57 +5,57 @@ import jwt from "jsonwebtoken";
 import moment from "moment";
 
 // Get Posts (feed or by userId)
-export const getPosts = (req, res) => {
-  const userId = req.query.userId;
-  const token = req.cookies.accessToken || req.headers.authorization?.split(" ")[1];
+// export const getPosts = (req, res) => {
+//   const userId = req.query.userId;
+//   const token = req.cookies.accessToken || req.headers.authorization?.split(" ")[1];
 
-  if (!token) {
-    return res.status(401).json("Not logged in!");
-  }
+//   if (!token) {
+//     return res.status(401).json("Not logged in!");
+//   }
 
-  try {
-    const userInfo = jwt.verify(token, process.env.JWT_SECRET);
+//   try {
+//     const userInfo = jwt.verify(token, process.env.JWT_SECRET);
     
-    let q;
-    let values;
+//     let q;
+//     let values;
 
-    if (userId) {
-      // Get posts for a specific user
-      q = `
-        SELECT p.*, u.id AS userId, u.name, u.profilePic 
-        FROM posts AS p 
-        JOIN users AS u ON (p.userId = u.id)
-        WHERE p.userId = ? 
-        ORDER BY p.createdAt DESC
-      `;
-      values = [userId];
-    } else {
-      // Get feed posts (from user and followed users)
-      q = `
-        SELECT p.*, u.id AS userId, u.name, u.profilePic 
-        FROM posts AS p 
-        JOIN users AS u ON (p.userId = u.id)
-        LEFT JOIN relationships AS r ON (p.userId = r.followedUserId)
-        WHERE p.userId = ? OR r.followerUserId = ?
-        GROUP BY p.id
-        ORDER BY p.createdAt DESC
-      `;
-      values = [userInfo.id, userInfo.id];
-    }
+//     if (userId) {
+//       // Get posts for a specific user
+//       q = `
+//         SELECT p.*, u.id AS userId, u.name, u.profilePic 
+//         FROM posts AS p 
+//         JOIN users AS u ON (p.userId = u.id)
+//         WHERE p.userId = ? 
+//         ORDER BY p.createdAt DESC
+//       `;
+//       values = [userId];
+//     } else {
+//       // Get feed posts (from user and followed users)
+//       q = `
+//         SELECT p.*, u.id AS userId, u.name, u.profilePic 
+//         FROM posts AS p 
+//         JOIN users AS u ON (p.userId = u.id)
+//         LEFT JOIN relationships AS r ON (p.userId = r.followedUserId)
+//         WHERE p.userId = ? OR r.followerUserId = ?
+//         GROUP BY p.id
+//         ORDER BY p.createdAt DESC
+//       `;
+//       values = [userInfo.id, userInfo.id];
+//     }
 
-    db.query(q, values, (err, data) => {
-      if (err) {
-        console.error("Database Error:", err);
-        return res.status(500).json("Database error!");
-      }
+//     db.query(q, values, (err, data) => {
+//       if (err) {
+//         console.error("Database Error:", err);
+//         return res.status(500).json("Database error!");
+//       }
 
-      return res.status(200).json(data);
-    });
-  } catch (err) {
-    console.error("Token Verification Failed:", err.message);
-    return res.status(403).json("Token is not valid!");
-  }
-};
+//       return res.status(200).json(data);
+//     });
+//   } catch (err) {
+//     console.error("Token Verification Failed:", err.message);
+//     return res.status(403).json("Token is not valid!");
+//   }
+// };
 
 
 
@@ -106,6 +106,67 @@ export const getPosts = (req, res) => {
 //     });
 //   });
 // };
+
+
+// ✅ Get Posts (feed or by userId)
+export const getPosts = (req, res) => {
+  const userId = req.query.userId;
+  const token = req.cookies.accessToken || req.headers.authorization?.split(" ")[1];
+
+  if (!token) {
+    console.error("❌ No Token Provided!");
+    return res.status(401).json("Not logged in!");
+  }
+
+  try {
+    const userInfo = jwt.verify(token, process.env.JWT_SECRET);
+    console.log("✅ Token Verified - User Info:", userInfo);
+
+    let q;
+    let values;
+
+    if (userId) {
+      // ✅ Get posts for a specific user
+      q = `
+        SELECT p.*, u.id AS userId, u.name, u.profilePic 
+        FROM posts AS p 
+        JOIN users AS u ON (p.userId = u.id)
+        WHERE p.userId = ? 
+        ORDER BY p.createdAt DESC
+      `;
+      values = [userId];
+    } else {
+      // ✅ Get feed posts (from user and followed users)
+      q = `
+        SELECT p.*, u.id AS userId, u.name, u.profilePic 
+        FROM posts AS p 
+        JOIN users AS u ON (p.userId = u.id)
+        LEFT JOIN relationships AS r ON (p.userId = r.followedUserId)
+        WHERE p.userId = ? OR r.followerUserId = ?
+        GROUP BY p.id
+        ORDER BY p.createdAt DESC
+      `;
+      values = [userInfo.id, userInfo.id];
+    }
+
+    console.log("📢 SQL Query:", q);
+    console.log("📢 Query Values:", values);
+
+    db.query(q, values, (err, data) => {
+      if (err) {
+        console.error("❌ Database Error:", err);
+        return res.status(500).json("Database error!");
+      }
+
+      console.log("✅ Posts Fetched Successfully!");
+      return res.status(200).json(data);
+    });
+  } catch (err) {
+    console.error("❌ Token Verification Failed:", err.message);
+    return res.status(403).json("Token is not valid!");
+  }
+};
+
 
 export const addPost = (req, res) => {
   const token = req.cookies.accessToken || req.headers.authorization?.split(" ")[1];
