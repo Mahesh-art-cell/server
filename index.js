@@ -144,6 +144,7 @@
 
 
 
+// 📢 Import Required Libraries
 import express from "express";
 import cors from "cors";
 import cookieParser from "cookie-parser";
@@ -155,37 +156,43 @@ dotenv.config(); // ✅ Load environment variables
 const app = express();
 
 // ✅ Middleware Setup
-app.use(express.json());
-app.use(cookieParser());
+app.use(express.json()); // Parse JSON requests
+app.use(cookieParser()); // Parse cookies
 
 // ✅ Serve Static Files (for uploaded images)
-app.use("/upload", express.static(path.join(process.cwd(), "public/upload"))); // ✅ Correct path usage
+app.use("/upload", express.static(path.resolve(process.cwd(), "public/upload")));
 
-
-// ✅ CORS Configuration
-const whitelist = [
+// ✅ Define Allowed Origins
+const allowedOrigins = [
   "http://localhost:3000", // ✅ Local Development
-  "https://client-brown-seven.vercel.app", // ✅ Deployed Client URL
+  "https://client-brown-seven.vercel.app", // ✅ Deployed Frontend URL
 ];
 
+// ✅ CORS Configuration
 app.use(
   cors({
-    origin: (origin, callback) => {
-      if (!origin || whitelist.includes(origin)) {
+    origin: function (origin, callback) {
+      if (!origin || allowedOrigins.includes(origin)) {
         callback(null, true);
       } else {
-        console.log("❌ Blocked by CORS - Origin:", origin);
-        callback(new Error("❌ Not allowed by CORS"));
+        console.error("❌ Blocked by CORS - Origin:", origin);
+        callback(new Error("Not allowed by CORS"));
       }
     },
-    credentials: true, // ✅ Allow Cookies
+    credentials: true, // ✅ Allow Cookies and Tokens
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
-    optionsSuccessStatus: 204,
   })
 );
 
-
+// ✅ Handle Preflight Requests Correctly
+app.options("*", (req, res) => {
+  res.header("Access-Control-Allow-Origin", req.headers.origin);
+  res.header("Access-Control-Allow-Credentials", "true");
+  res.header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
+  res.header("Access-Control-Allow-Headers", "Content-Type, Authorization");
+  res.status(204).end();
+});
 
 // ✅ Import Routes
 import authRoutes from "./routes/auth.js";
@@ -209,9 +216,16 @@ app.use("/api/relationships", relationshipRoutes);
 app.use("/api/upload", uploadRoutes);
 app.use("/api/media", mediaRoutes);
 
+// ✅ Debug Middleware (Optional: Check Incoming Requests)
+app.use((req, res, next) => {
+  console.log(`📢 Incoming Request: ${req.method} ${req.url}`);
+  console.log("📢 Headers:", req.headers);
+  next();
+});
+
 // ✅ Test Route
 app.get("/", (req, res) => {
-  res.send("Root is working 🚀");
+  res.send("🚀 Root is working perfectly!");
 });
 
 // ✅ Start Server
