@@ -144,6 +144,7 @@
 
 
 
+// 📢 Import Required Libraries
 import express from "express";
 import cors from "cors";
 import cookieParser from "cookie-parser";
@@ -157,6 +158,9 @@ const app = express();
 // ✅ Middleware Setup
 app.use(express.json()); // Parse JSON requests
 app.use(cookieParser()); // Parse cookies
+
+// ✅ Serve Static Files (for uploaded images)
+app.use("/upload", express.static(path.resolve(process.cwd(), "public/upload")));
 
 // ✅ Define Allowed Origins
 const allowedOrigins = [
@@ -175,13 +179,13 @@ app.use(
         callback(new Error("Not allowed by CORS"));
       }
     },
-    credentials: true, // ✅ Allow credentials (cookies, JWT)
+    credentials: true, // ✅ Allow Cookies and Tokens
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization", "x-access-token"],
+    allowedHeaders: ["Content-Type", "Authorization"],
   })
 );
 
-// ✅ Handle Preflight Requests Correctly
+// ✅ Handle Preflight Requests Correctly (Fix Preflight Issues)
 app.options("*", (req, res) => {
   res.header("Access-Control-Allow-Origin", req.headers.origin || "*");
   res.header("Access-Control-Allow-Credentials", "true");
