@@ -1,40 +1,3 @@
-// import mysql from "mysql2";
-// import dotenv from "dotenv";
-
-// dotenv.config();
-
-
-
-// export const db = mysql.createConnection({
-//   host:process.env.DBHOSTNAME,
-//   user:process.env.DBUSER,
-//   password:process.env.DBPASSWORD,
-//   database:process.env.DBNAME
-// })
-
-// import mysql from "mysql2";
-// import dotenv from "dotenv";
-// dotenv.config();
-
-// export const db = mysql.createPool({
-//   host: process.env.DBHOSTNAME,
-//   user: process.env.DBUSER,
-//   password: process.env.DBPASSWORD,
-//   database: process.env.DBNAME,
-//   port: 3306, // ✅ Add port explicitly
-//   waitForConnections: true,
-//   connectionLimit: 10, // ✅ Keep multiple connections alive
-//   queueLimit: 0
-// });
-
-// db.getConnection((err, connection) => {
-//   if (err) {
-//     console.error("❌ MySQL Connection Error:", err);
-//   } else {
-//     console.log("✅ Connected to AWS RDS MySQL Database!");
-//     connection.release();
-//   }
-// });
 
 
 
@@ -65,24 +28,48 @@
 // });
 
 
-import mysql from 'mysql2';
+// import mysql from 'mysql2';
+// import dotenv from 'dotenv';
+// dotenv.config();
+
+// // ✅ Create MySQL Connection Pool
+// export const db = mysql.createPool({
+//   host: process.env.DBHOSTNAME,
+//   user: process.env.DBUSER,
+//   password: process.env.DBPASSWORD,
+//   database: process.env.DBNAME,
+// });
+
+// // ✅ Check Database Connection
+// db.getConnection((err, connection) => {
+//   if (err) {
+//     console.error('❌ Database Connection Error:', err.message);
+//   } else {
+//     console.log('✅ MySQL Database Connected!');
+//     connection.release();
+//   }
+// });
+
+
+
+import mysql from "mysql2";
 import dotenv from 'dotenv';
 dotenv.config();
 
-// ✅ Create MySQL Connection Pool
-export const db = mysql.createPool({
-  host: process.env.DBHOSTNAME,
-  user: process.env.DBUSER,
-  password: process.env.DBPASSWORD,
-  database: process.env.DBNAME,
+// ✅ Define Connection with Production DB on Render
+export const db = mysql.createConnection({
+  host: process.env.DBHOSTNAME, // ✅ Render DB Host
+  user: process.env.DBUSER, // ✅ DB User
+  password: process.env.DBPASSWORD, // ✅ DB Password
+  database: process.env.DBNAME, // ✅ DB Name
+  port: 3306, // ✅ MySQL Port
 });
 
-// ✅ Check Database Connection
-db.getConnection((err, connection) => {
+// ✅ Connect to DB and Handle Errors
+db.connect((err) => {
   if (err) {
-    console.error('❌ Database Connection Error:', err.message);
-  } else {
-    console.log('✅ MySQL Database Connected!');
-    connection.release();
+    console.error("❌ Database Connection Error:", err.message);
+    process.exit(1);
   }
+  console.log("✅ Database Connected Successfully!");
 });
