@@ -144,7 +144,6 @@
 
 
 
-// 📢 Import Required Libraries
 import express from "express";
 import cors from "cors";
 import cookieParser from "cookie-parser";
@@ -179,13 +178,13 @@ app.use(
         callback(new Error("Not allowed by CORS"));
       }
     },
-    credentials: true, // ✅ Allow Cookies and Tokens
+    credentials: true, // ✅ Enable credentials
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization"],
+    allowedHeaders: ["Content-Type", "Authorization", "x-access-token"],
   })
 );
 
-// ✅ Handle Preflight Requests Correctly (Fix Preflight Issues)
+// ✅ Handle Preflight Requests Correctly
 app.options("*", (req, res) => {
   res.header("Access-Control-Allow-Origin", req.headers.origin || "*");
   res.header("Access-Control-Allow-Credentials", "true");
@@ -218,13 +217,6 @@ app.use("/api/stories", storyRoutes);
 app.use("/api/relationships", relationshipRoutes);
 app.use("/api/upload", uploadRoutes);
 app.use("/api/media", mediaRoutes);
-
-// ✅ Debug Middleware (Optional: Check Incoming Requests)
-app.use((req, res, next) => {
-  console.log(`📢 Incoming Request: ${req.method} ${req.url}`);
-  console.log("📢 Headers:", req.headers);
-  next();
-});
 
 // ✅ Test Route
 app.get("/", (req, res) => {
