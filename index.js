@@ -158,9 +158,6 @@ const app = express();
 app.use(express.json()); // Parse JSON requests
 app.use(cookieParser()); // Parse cookies
 
-// ✅ Serve Static Files (for uploaded images)
-app.use("/upload", express.static(path.resolve(process.cwd(), "public/upload")));
-
 // ✅ Define Allowed Origins
 const allowedOrigins = [
   "http://localhost:3000", // ✅ Local Development
@@ -178,7 +175,7 @@ app.use(
         callback(new Error("Not allowed by CORS"));
       }
     },
-    credentials: true, // ✅ Enable credentials
+    credentials: true, // ✅ Allow credentials (cookies, JWT)
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization", "x-access-token"],
   })
