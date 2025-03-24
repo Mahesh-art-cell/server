@@ -94,7 +94,7 @@ cloudinary.config({
 });
 
 // ✅ Multer Storage Setup
-const storage = multer.memoryStorage();
+const storage = multer.memoryStorage(); // ✅ Store files in memory before upload
 const upload = multer({ storage });
 
 // ✅ Upload Function to Cloudinary
