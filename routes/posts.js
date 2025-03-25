@@ -1,13 +1,19 @@
 
+
 // import express from "express";
-// import { getPosts, addPost, deletePost } from "../controllers/post.js";
-// import { verifyToken } from "../middleware/verifyToken.js";  // Import middleware
+// import { getPosts, deletePost, addPost } from "../controllers/post.js";
+// import { verifyToken } from "../middleware/verifyToken.js"; // ✅ Corrected Import
 
 // const router = express.Router();
 
-// router.get("/", verifyToken, getPosts);   // ✅ Requires authentication
-// router.post("/", verifyToken, addPost);   // ✅ Requires authentication
-// router.delete("/:id", verifyToken, deletePost); // ✅ Requires authentication
+// // ✅ Get Posts (Home or Profile)
+// router.get("/", verifyToken, getPosts);
+
+// // ✅ Create Post
+// router.post("/", verifyToken, addPost);
+
+// // ✅ Delete Post
+// router.delete("/:id", verifyToken, deletePost);
 
 // export default router;
 
@@ -15,18 +21,22 @@
 
 
 
-
 import express from "express";
 import { getPosts, deletePost, addPost } from "../controllers/post.js";
-import { verifyToken } from "../middleware/verifyToken.js"; // ✅ Corrected Import
+import { verifyToken } from "../middleware/verifyToken.js";
+import multer from "multer";
 
 const router = express.Router();
 
-// ✅ Get Posts (Home or Profile)
+// ✅ Multer Storage Configuration (In Memory)
+const storage = multer.memoryStorage(); // ✅ Temporarily store file in memory
+const upload = multer({ storage });
+
+// ✅ Get Posts
 router.get("/", verifyToken, getPosts);
 
-// ✅ Create Post
-router.post("/", verifyToken, addPost);
+// ✅ Create Post with Cloudinary Upload
+router.post("/", verifyToken, upload.single("file"), addPost);
 
 // ✅ Delete Post
 router.delete("/:id", verifyToken, deletePost);
