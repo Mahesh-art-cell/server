@@ -1,6 +1,18 @@
 import { db } from "../connect.js";
 import jwt from "jsonwebtoken";
 import moment from "moment";
+import dotenv from "dotenv";
+
+// ✅ Load environment variables
+dotenv.config();
+
+// ✅ Use secretKey from environment
+const secretKey = process.env.JWT_SECRET;
+
+// ✅ Check if secretKey is loaded properly
+if (!secretKey) {
+  console.error("❌ JWT_SECRET is not defined. Check your .env file!");
+}
 
 // ✅ Get Comments (for a specific post)
 export const getComments = (req, res) => {
@@ -13,7 +25,10 @@ export const getComments = (req, res) => {
   `;
 
   db.query(q, [req.query.postId], (err, data) => {
-    if (err) return res.status(500).json(err);
+    if (err) {
+      console.error("❌ Error fetching comments:", err);
+      return res.status(500).json(err);
+    }
     return res.status(200).json(data);
   });
 };
@@ -28,12 +43,14 @@ export const addComment = (req, res) => {
     return res.status(401).json("Not logged in!");
   }
 
-  jwt.verify(token, "secretkey", (err, userInfo) => {
+  // ✅ Verify JWT Token Correctly
+  jwt.verify(token, secretKey, (err, userInfo) => {
     if (err) {
-      console.log("❌ Invalid token");
+      console.log("❌ Invalid token:", err.message);
       return res.status(403).json("Token is not valid!");
     }
 
+    // ✅ Extract required fields
     const description = req.body.desc?.trim();
     const postId = req.body.postId;
 
@@ -54,13 +71,13 @@ export const addComment = (req, res) => {
         return res.status(400).json("Post does not exist!");
       }
 
-      // ✅ Step 2: Insert comment for `userId = 1`
+      // ✅ Step 2: Insert comment with correct userId
       const q = "INSERT INTO comments(`description`, `createdAt`, `userId`, `postId`) VALUES (?)";
       const values = [
         description,
         moment(Date.now()).format("YYYY-MM-DD HH:mm:ss"),
-        1,  // 👈 Force userId = 1
-        postId
+        userInfo.id, // ✅ Get userId from token
+        postId,
       ];
 
       db.query(q, [values], (err, data) => {
@@ -75,8 +92,6 @@ export const addComment = (req, res) => {
   });
 };
 
-
-
 // ✅ Delete a Comment (only owner can delete)
 export const deleteComment = (req, res) => {
   console.log("📥 Delete request received for comment ID:", req.params.id);
@@ -87,9 +102,10 @@ export const deleteComment = (req, res) => {
     return res.status(401).json("Not authenticated!");
   }
 
-  jwt.verify(token, "secretkey", (err, userInfo) => {
+  // ✅ Verify Token and Get userId
+  jwt.verify(token, secretKey, (err, userInfo) => {
     if (err) {
-      console.log("❌ Invalid token");
+      console.log("❌ Invalid token:", err.message);
       return res.status(403).json("Token is not valid!");
     }
 
