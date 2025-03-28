@@ -1,16 +1,20 @@
 
-
 // import express from "express";
 // import { getPosts, deletePost, addPost } from "../controllers/post.js";
-// import { verifyToken } from "../middleware/verifyToken.js"; // ✅ Corrected Import
+// import { verifyToken } from "../middleware/verifyToken.js";
+// import multer from "multer";
 
 // const router = express.Router();
 
-// // ✅ Get Posts (Home or Profile)
+// // ✅ Multer Storage Configuration (In Memory)
+// const storage = multer.memoryStorage(); // ✅ Temporarily store file in memory
+// const upload = multer({ storage });
+
+// // ✅ Get Posts
 // router.get("/", verifyToken, getPosts);
 
-// // ✅ Create Post
-// router.post("/", verifyToken, addPost);
+// // ✅ Create Post with Cloudinary Upload
+// router.post("/", verifyToken, upload.single("file"), addPost);
 
 // // ✅ Delete Post
 // router.delete("/:id", verifyToken, deletePost);
@@ -19,23 +23,21 @@
 
 
 
-
-
 import express from "express";
-import { getPosts, deletePost, addPost } from "../controllers/post.js";
+import { getPosts, addPost, deletePost } from "../controllers/post.js";
 import { verifyToken } from "../middleware/verifyToken.js";
 import multer from "multer";
 
 const router = express.Router();
 
-// ✅ Multer Storage Configuration (In Memory)
-const storage = multer.memoryStorage(); // ✅ Temporarily store file in memory
+// ✅ Multer Storage Configuration (In Memory for Cloudinary Upload)
+const storage = multer.memoryStorage(); // Store file temporarily in memory
 const upload = multer({ storage });
 
-// ✅ Get Posts
+// ✅ Get All Posts (Home Feed) or User's Posts (Profile)
 router.get("/", verifyToken, getPosts);
 
-// ✅ Create Post with Cloudinary Upload
+// ✅ Create Post with Image/Video Upload to Cloudinary
 router.post("/", verifyToken, upload.single("file"), addPost);
 
 // ✅ Delete Post

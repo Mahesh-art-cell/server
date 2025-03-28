@@ -1,10 +1,40 @@
 
-
+// // 📢 Import Required Libraries
 // import { db } from "../connect.js";
 // import jwt from "jsonwebtoken";
 // import moment from "moment";
+// import { v2 as cloudinary } from "cloudinary";
+// import streamifier from "streamifier";
 
-// // ✅ Get Posts (feed or by userId)
+// // ✅ Cloudinary Configuration
+// cloudinary.config({
+//   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+//   api_key: process.env.CLOUDINARY_API_KEY,
+//   api_secret: process.env.CLOUDINARY_API_SECRET,
+// });
+
+// // ✅ Function to Upload Image to Cloudinary
+// const uploadToCloudinary = (buffer) => {
+//   return new Promise((resolve, reject) => {
+//     const stream = cloudinary.uploader.upload_stream(
+//       {
+//         folder: "social_media", // ✅ Upload to 'social_media' folder
+//       },
+//       (error, result) => {
+//         if (result) {
+//           console.log("✅ Cloudinary Upload Successful:", result.secure_url);
+//           resolve(result.secure_url); // ✅ Return Cloudinary URL
+//         } else {
+//           console.error("❌ Cloudinary Upload Error:", error.message);
+//           reject(error);
+//         }
+//       }
+//     );
+//     streamifier.createReadStream(buffer).pipe(stream);
+//   });
+// };
+
+// // ✅ Get Posts (Feed or by User ID)
 // export const getPosts = (req, res) => {
 //   const userId = req.query.userId;
 //   const token = req.cookies.accessToken || req.headers.authorization?.split(" ")[1];
@@ -45,9 +75,6 @@
 //       values = [userInfo.id, userInfo.id];
 //     }
 
-//     console.log("📢 SQL Query:", q);
-//     console.log("📢 Query Values:", values);
-
 //     db.query(q, values, (err, data) => {
 //       if (err) {
 //         console.error("❌ Database Error:", err);
@@ -63,51 +90,73 @@
 //   }
 // };
 
+// // ✅ Add Post with Cloudinary Upload
 
-// export const addPost = (req, res) => {
+// // ✅ Add Post with Cloudinary Upload
+// export const addPost = async (req, res) => {
+//   console.log("📢 Incoming Request Body:", req.body); // ✅ Debug Incoming Data
+
 //   const token = req.cookies.accessToken || req.headers.authorization?.split(" ")[1];
 
 //   if (!token) {
 //     return res.status(401).json({ error: "Not logged in!" });
 //   }
 
-//   jwt.verify(token, process.env.JWT_SECRET, (err, userInfo) => {
+//   jwt.verify(token, process.env.JWT_SECRET, async (err, userInfo) => {
 //     if (err) {
 //       return res.status(403).json({ error: "Token is not valid!" });
 //     }
 
-//     // ✅ Validate request body
-//     if (!req.body.content) {
+//     // ✅ Use req.body.content to get form-data content
+//     const content = req.body.content;
+
+//     if (!content || content.trim() === "") {
+//       console.error("❌ No content provided!");
 //       return res.status(400).json({ error: "Content is required!" });
+//     }
+
+//     let imgUrl = null;
+
+//     // ✅ Check if Image is Provided via Multer (req.file)
+//     if (req.file) {
+//       try {
+//         imgUrl = await uploadToCloudinary(req.file.buffer); // ✅ Upload to Cloudinary
+//       } catch (uploadError) {
+//         console.error("❌ Cloudinary Upload Error:", uploadError.message);
+//         return res.status(500).json({ error: "Failed to upload image to Cloudinary" });
+//       }
 //     }
 
 //     // ✅ Prepare SQL Query and Values
 //     const q = "INSERT INTO posts(`content`, `img`, `createdAt`, `userId`) VALUES (?)";
 //     const values = [
-//       req.body.content,
-//       req.body.img || null, // ✅ Set default to null if no image
+//       content,
+//       imgUrl || null, // ✅ Store Cloudinary URL in DB
 //       moment().format("YYYY-MM-DD HH:mm:ss"),
 //       userInfo.id,
 //     ];
 
-//     // ✅ Insert post to DB
+//     // ✅ Insert into Database
+//     console.log(q,values)
 //     db.query(q, [values], (err, data) => {
 //       if (err) {
 //         console.error("❌ Database Error:", err);
 //         return res.status(500).json({ error: "Failed to create post" });
 //       }
 
-//       // ✅ Return success response
+//       console.log("✅ Post Created Successfully!");
 //       return res.status(200).json({
 //         message: "Post created successfully",
 //         postId: data.insertId,
-//         imgUrl: req.body.img || null, // ✅ Return uploaded image URL
+//         imgUrl: imgUrl || null, // ✅ Return Cloudinary URL to frontend
 //       });
 //     });
 //   });
 // };
 
-// // Delete Post
+
+
+// // ✅ Delete Post
 // export const deletePost = (req, res) => {
 //   const token = req.cookies.accessToken || req.headers.authorization?.split(" ")[1];
 
@@ -125,10 +174,10 @@
 
 //     db.query(q, [postId, userInfo.id], (err, data) => {
 //       if (err) {
-//         console.error("Database Error:", err);
+//         console.error("❌ Database Error:", err);
 //         return res.status(500).json("Failed to delete post");
 //       }
-      
+
 //       if (data.affectedRows === 0) {
 //         return res.status(403).json("You can only delete your own posts!");
 //       }
@@ -137,6 +186,7 @@
 //     });
 //   });
 // };
+
 
 
 
@@ -154,17 +204,21 @@ cloudinary.config({
   api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
-// ✅ Function to Upload Image to Cloudinary
-const uploadToCloudinary = (buffer) => {
+// ✅ Upload Media (Image/Video) to Cloudinary
+const uploadToCloudinary = (buffer, fileType) => {
   return new Promise((resolve, reject) => {
+    // ✅ Define Upload Folder Based on File Type
+    const folder = fileType.startsWith("image") ? "social_media/images" : "social_media/videos";
+
     const stream = cloudinary.uploader.upload_stream(
       {
-        folder: "social_media", // ✅ Upload to 'social_media' folder
+        folder,
+        resource_type: fileType.startsWith("video") ? "video" : "image", // ✅ Set resource_type dynamically
       },
       (error, result) => {
         if (result) {
-          console.log("✅ Cloudinary Upload Successful:", result.secure_url);
-          resolve(result.secure_url); // ✅ Return Cloudinary URL
+          console.log(`✅ ${fileType.startsWith("video") ? "Video" : "Image"} uploaded successfully:`, result.secure_url);
+          resolve(result.secure_url);
         } else {
           console.error("❌ Cloudinary Upload Error:", error.message);
           reject(error);
@@ -175,7 +229,7 @@ const uploadToCloudinary = (buffer) => {
   });
 };
 
-// ✅ Get Posts (Feed or by User ID)
+// ✅ Get All Posts (Home Feed) or User's Posts (Profile)
 export const getPosts = (req, res) => {
   const userId = req.query.userId;
   const token = req.cookies.accessToken || req.headers.authorization?.split(" ")[1];
@@ -189,12 +243,12 @@ export const getPosts = (req, res) => {
     const userInfo = jwt.verify(token, process.env.JWT_SECRET);
     console.log("✅ Token Verified - User Info:", userInfo);
 
-    let q;
+    let query;
     let values;
 
     if (userId) {
-      // ✅ Get posts for a specific user
-      q = `
+      // ✅ Get Only User's Posts for Profile Page
+      query = `
         SELECT p.*, u.id AS userId, u.name, u.profilePic 
         FROM posts AS p 
         JOIN users AS u ON (p.userId = u.id)
@@ -203,8 +257,8 @@ export const getPosts = (req, res) => {
       `;
       values = [userId];
     } else {
-      // ✅ Get feed posts (from user and followed users)
-      q = `
+      // ✅ Get All Posts for Home Feed
+      query = `
         SELECT p.*, u.id AS userId, u.name, u.profilePic 
         FROM posts AS p 
         JOIN users AS u ON (p.userId = u.id)
@@ -216,7 +270,7 @@ export const getPosts = (req, res) => {
       values = [userInfo.id, userInfo.id];
     }
 
-    db.query(q, values, (err, data) => {
+    db.query(query, values, (err, data) => {
       if (err) {
         console.error("❌ Database Error:", err);
         return res.status(500).json("Database error!");
@@ -231,55 +285,68 @@ export const getPosts = (req, res) => {
   }
 };
 
-// ✅ Add Post with Cloudinary Upload
-
-// ✅ Add Post with Cloudinary Upload
+// ✅ Add Post with Image/Video Upload to Cloudinary
 export const addPost = async (req, res) => {
-  console.log("📢 Incoming Request Body:", req.body); // ✅ Debug Incoming Data
+  console.log("📢 Incoming Request Body:", req.body);
 
+  // ✅ Get Token from Cookie or Authorization Header
   const token = req.cookies.accessToken || req.headers.authorization?.split(" ")[1];
 
   if (!token) {
     return res.status(401).json({ error: "Not logged in!" });
   }
 
+  // ✅ Verify JWT Token
   jwt.verify(token, process.env.JWT_SECRET, async (err, userInfo) => {
     if (err) {
       return res.status(403).json({ error: "Token is not valid!" });
     }
 
-    // ✅ Use req.body.content to get form-data content
-    const content = req.body.content;
+    // ✅ Extract Content from Request
+    const content = req.body.content || null;
 
-    if (!content || content.trim() === "") {
-      console.error("❌ No content provided!");
-      return res.status(400).json({ error: "Content is required!" });
+    // ✅ Validate Media (Image or Video Required)
+    if (!req.file) {
+      console.error("❌ No media provided!");
+      return res.status(400).json({ error: "Please upload an image or a video!" });
     }
 
-    let imgUrl = null;
+    let mediaUrl = null;
+    let mediaType = null;
+    const fileType = req.file.mimetype;
 
-    // ✅ Check if Image is Provided via Multer (req.file)
-    if (req.file) {
-      try {
-        imgUrl = await uploadToCloudinary(req.file.buffer); // ✅ Upload to Cloudinary
-      } catch (uploadError) {
-        console.error("❌ Cloudinary Upload Error:", uploadError.message);
-        return res.status(500).json({ error: "Failed to upload image to Cloudinary" });
-      }
+    // ✅ Determine File Type (Image or Video)
+    if (fileType.startsWith("image")) {
+      mediaType = "image";
+    } else if (fileType.startsWith("video")) {
+      mediaType = "video";
+    } else {
+      return res.status(400).json({ error: "Invalid file type. Only images and videos are allowed!" });
     }
 
-    // ✅ Prepare SQL Query and Values
-    const q = "INSERT INTO posts(`content`, `img`, `createdAt`, `userId`) VALUES (?)";
+    // ✅ Upload to Cloudinary Based on Media Type
+    try {
+      mediaUrl = await uploadToCloudinary(req.file.buffer, mediaType === "image" ? "images" : "videos");
+    } catch (uploadError) {
+      console.error("❌ Cloudinary Upload Error:", uploadError.message);
+      return res.status(500).json({ error: "Failed to upload media to Cloudinary" });
+    }
+
+    // ✅ Prepare SQL Query for Post Creation
+    const query = `
+      INSERT INTO posts(\`content\`, \`mediaUrl\`, \`mediaType\`, \`createdAt\`, \`userId\`)
+      VALUES (?, ?, ?, ?, ?)
+    `;
     const values = [
       content,
-      imgUrl || null, // ✅ Store Cloudinary URL in DB
-      moment().format("YYYY-MM-DD HH:mm:ss"),
-      userInfo.id,
+      mediaUrl || null, // ✅ Uploaded Media URL
+      mediaType, // ✅ "image" or "video"
+      moment().format("YYYY-MM-DD HH:mm:ss"), // ✅ Current Timestamp
+      userInfo.id, // ✅ User ID from Token
     ];
 
-    // ✅ Insert into Database
-    console.log(q,values)
-    db.query(q, [values], (err, data) => {
+    // ✅ Insert New Post in the Database
+    db.query(query, values, (err, data) => {
       if (err) {
         console.error("❌ Database Error:", err);
         return res.status(500).json({ error: "Failed to create post" });
@@ -287,15 +354,13 @@ export const addPost = async (req, res) => {
 
       console.log("✅ Post Created Successfully!");
       return res.status(200).json({
-        message: "Post created successfully",
+        message: "Post created successfully!",
         postId: data.insertId,
-        imgUrl: imgUrl || null, // ✅ Return Cloudinary URL to frontend
+        mediaUrl: mediaUrl || null,
       });
     });
   });
 };
-
-
 
 // ✅ Delete Post
 export const deletePost = (req, res) => {
@@ -311,9 +376,9 @@ export const deletePost = (req, res) => {
     }
 
     const postId = req.params.id;
-    const q = "DELETE FROM posts WHERE `id` = ? AND `userId` = ?";
+    const query = "DELETE FROM posts WHERE `id` = ? AND `userId` = ?";
 
-    db.query(q, [postId, userInfo.id], (err, data) => {
+    db.query(query, [postId, userInfo.id], (err, data) => {
       if (err) {
         console.error("❌ Database Error:", err);
         return res.status(500).json("Failed to delete post");
@@ -323,7 +388,7 @@ export const deletePost = (req, res) => {
         return res.status(403).json("You can only delete your own posts!");
       }
 
-      return res.status(200).json("Post has been deleted successfully");
+      return res.status(200).json("Post has been deleted successfully!");
     });
   });
 };
