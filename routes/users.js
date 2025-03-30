@@ -94,7 +94,7 @@
 
 
 import express from "express";
-import { getUser, updateUser } from "../controllers/user.js";
+import { getUser, updateUser, getAllUsers} from "../controllers/user.js";
 import { verifyToken } from "../middleware/verifyToken.js";
 import multer from "multer";
 
@@ -112,5 +112,7 @@ router.put("/:userId", verifyToken, upload.fields([
   { name: "profilePic", maxCount: 1 },
   { name: "coverPic", maxCount: 1 }
 ]), updateUser);
+
+router.get("/allUsers", getAllUsers);
 
 export default router;

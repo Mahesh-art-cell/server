@@ -295,3 +295,53 @@ export const getCounts = (req, res) => {
     });
   });
 };
+
+
+// ✅ Get All Users with Full Details
+export const getAllUsers = (req, res) => {
+  console.log("📢 Checking Cookies for Token:", req.cookies);
+  console.log("📢 Checking Headers for Token:", req.headers);
+
+  // ✅ Extract Token from Cookies or Headers
+  const token =
+    req.cookies.accessToken || // Token from cookies
+    req.headers.authorization?.split(" ")[1]; // Token from headers
+
+  console.log("📢 Extracted Token:", token);
+
+  if (!token) {
+    console.error("❌ No token found");
+    return res.status(401).json("Not logged in!");
+  }
+
+  // ✅ Verify JWT Token
+  jwt.verify(token, process.env.JWT_SECRET, (err, userInfo) => {
+    if (err) {
+      console.error("❌ Invalid token:", err);
+      return res.status(403).json("Token is not valid!");
+    }
+
+    // ✅ Query to Get All Users from the Database
+    const q = `
+      SELECT 
+        id, 
+        username, 
+        email, 
+        name, 
+        profilePic, 
+        coverPic, 
+        created_at
+      FROM users
+    `;
+
+    db.query(q, (err, data) => {
+      if (err) {
+        console.error("❌ MySQL Error:", err);
+        return res.status(500).json(err);
+      }
+
+      console.log("✅ All Users Fetched Successfully!");
+      return res.status(200).json(data);
+    });
+  });
+};

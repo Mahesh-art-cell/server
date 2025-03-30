@@ -331,3 +331,59 @@ export const updateUser = async (req, res) => {
     return res.status(500).json("Error updating user profile.");
   }
 };
+
+
+
+export const getAllUsers = (req, res) => {
+  console.log("📢 Checking Cookies for Token:", req.cookies);
+  console.log("📢 Checking Headers for Token:", req.headers);
+
+  // ✅ Extract Token from Cookies or Headers
+  const token =
+    req.cookies.accessToken ||
+    req.headers.authorization?.split(" ")[1]; // ✅ Get Token Correctly
+
+  console.log("📢 Extracted Token:", token);
+
+  if (!token) {
+    console.error("❌ No token found");
+    return res.status(401).json("Not logged in!");
+  }
+
+  // ✅ Verify JWT Token
+  jwt.verify(token, process.env.JWT_SECRET, (err, userInfo) => {
+    if (err) {
+      console.error("❌ Invalid token:", err.message);
+      return res.status(403).json("Token is not valid!");
+    }
+
+    console.log("✅ Token Verified Successfully!");
+    console.log("🔐 Decoded User Info:", userInfo);
+
+    // ✅ Query to Get All Users
+    const q = `
+      SELECT 
+        id, 
+        username, 
+        email, 
+        name, 
+        profilePic, 
+        coverPic, 
+        created_at
+      FROM users
+    `;
+
+    console.log("📢 Running SQL Query to Fetch Users...");
+
+    db.query(q, (err, data) => {
+      if (err) {
+        console.error("❌ MySQL Error:", err.message);
+        return res.status(500).json({ error: "Internal Server Error", details: err.message });
+      }
+
+      console.log("✅ All Users Fetched Successfully!");
+      console.log(`📢 Fetched ${data.length} Users`);
+      return res.status(200).json(data);
+    });
+  });
+};
