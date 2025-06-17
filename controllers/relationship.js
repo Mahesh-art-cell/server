@@ -1,347 +1,150 @@
-// import { db } from "../connect.js";
-// import jwt from "jsonwebtoken";
-// import dotenv from "dotenv";
-// dotenv.config();
-
-// // ✅ Get Relationships (Get Followers of a User)
-// export const getRelationships = (req, res) => {
-//   console.log("📢 Incoming request:", req.query);
-
-//   if (!req.query.followedUserId) {
-//     console.error("❌ Missing followedUserId");
-//     return res.status(400).json("followedUserId is required");
-//   }
-
-//   const q = "SELECT followerUserId FROM relationships WHERE followedUserId = ?";
-//   console.log("📌 Running Query:", q, "With Value:", req.query.followedUserId);
-
-//   db.query(q, [req.query.followedUserId], (err, data) => {
-//     if (err) {
-//       console.error("❌ MySQL Error:", err);
-//       return res.status(500).json(err);
-//     }
-
-//     console.log("✅ Query Result:", data);
-//     return res.status(200).json(data.map((relationship) => relationship.followerUserId));
-//   });
-// };
-
-// // ✅ Add Relationship (Follow a User)
-// export const addRelationship = (req, res) => {
-//   console.log("📢 Incoming request:", req.body);
-//   console.log("📢 Cookies received:", req.cookies);
-
-//   const token = req.cookies.accessToken;
-//   if (!token) {
-//     console.error("❌ No token found");
-//     return res.status(401).json("Not logged in!");
-//   }
-
-//   jwt.verify(token, process.env.JWT_SECRET, (err, userInfo) => {
-//     if (err) {
-//       console.error("❌ Invalid token:", err);
-//       return res.status(403).json("Token is not valid!");
-//     }
-
-//     console.log("✅ Authenticated User ID:", userInfo.id);
-
-//     if (!req.body.followedUserId) {
-//       console.error("❌ Missing followedUserId in request body");
-//       return res.status(400).json("followedUserId is required");
-//     }
-
-//     const q = "INSERT INTO relationships (`followerUserId`, `followedUserId`) VALUES (?, ?)";
-//     const values = [userInfo.id, req.body.followedUserId];
-
-//     console.log("📌 Executing SQL:", q, "Values:", values);
-
-//     db.query(q, values, (err, data) => {
-//       if (err) {
-//         console.error("❌ MySQL Error:", err);
-//         return res.status(500).json(err);
-//       }
-//       console.log("✅ Insert Successful:", data);
-//       return res.status(200).json("Following");
-//     });
-//   });
-// };
-
-// // ✅ Delete Relationship (Unfollow a User)
-// export const deleteRelationship = (req, res) => {
-//   const token = req.cookies.accessToken;
-//   if (!token) {
-//     console.error("❌ No token found");
-//     return res.status(401).json("Not logged in!");
-//   }
-
-//   jwt.verify(token, process.env.JWT_SECRET, (err, userInfo) => {
-//     if (err) {
-//       console.error("❌ Invalid token:", err);
-//       return res.status(403).json("Token is not valid!");
-//     }
-
-//     console.log("✅ Authenticated User ID:", userInfo.id);
-
-//     const q = "DELETE FROM relationships WHERE `followerUserId` = ? AND `followedUserId` = ?";
-//     db.query(q, [userInfo.id, req.query.userId], (err, data) => {
-//       if (err) {
-//         console.error("❌ MySQL Error:", err);
-//         return res.status(500).json(err);
-//       }
-//       console.log("✅ Unfollowed Successfully:", data);
-//       return res.status(200).json("Unfollow");
-//     });
-//   });
-// };
 
 
-
-// export const getSuggestions = (req, res) => {
-//   const token = req.cookies.accessToken;
-//   if (!token) {
-//     return res.status(401).json("Not logged in!");
-//   }
-
-//   jwt.verify(token, process.env.JWT_SECRET, (err, userInfo) => {
-//     if (err) return res.status(403).json("Token is not valid!");
-
-//     const q = `
-//       SELECT id, username, profilePic
-//       FROM users
-//       WHERE id != ? AND id NOT IN (
-//         SELECT followedUserId FROM relationships WHERE followerUserId = ?
-//       )
-//     `;
-
-//     db.query(q, [userInfo.id, userInfo.id], (err, data) => {
-//       if (err) return res.status(500).json(err);
-//       return res.status(200).json(data);
-//     });
-//   });
-// };
-
-
-import { db } from "../connect.js";
-import jwt from "jsonwebtoken";
+import connectDB from "../connect.js";
 import dotenv from "dotenv";
 dotenv.config();
 
-// ✅ Get Relationships (Get Followers of a User)
-export const getRelationships = (req, res) => {
-  console.log("📢 Incoming request:", req.query);
 
-  if (!req.query.followedUserId) {
-    console.error("❌ Missing followedUserId");
-    return res.status(400).json("followedUserId is required");
-  }
+import Relationship from "../models/Relationship.js";
+import jwt from "jsonwebtoken";
 
-  const q = "SELECT followerUserId FROM relationships WHERE followedUserId = ?";
-  console.log("📌 Running Query:", q, "With Value:", req.query.followedUserId);
+export const getRelationships = async (req, res) => {
+  try {
+    const { followedUserId } = req.query;
 
-  db.query(q, [req.query.followedUserId], (err, data) => {
-    if (err) {
-      console.error("❌ MySQL Error:", err);
-      return res.status(500).json(err);
-    }
-
-    console.log("✅ Query Result:", data);
-    return res.status(200).json(data.map((relationship) => relationship.followerUserId));
-  });
-};
-
-// ✅ Add Relationship (Follow a User)
-export const addRelationship = (req, res) => {
-  console.log("📢 Incoming request:", req.body);
-  console.log("📢 Cookies received:", req.cookies);
-
-  const token = req.cookies.accessToken;
-  if (!token) {
-    console.error("❌ No token found");
-    return res.status(401).json("Not logged in!");
-  }
-
-  jwt.verify(token, process.env.JWT_SECRET, (err, userInfo) => {
-    if (err) {
-      console.error("❌ Invalid token:", err);
-      return res.status(403).json("Token is not valid!");
-    }
-
-    console.log("✅ Authenticated User ID:", userInfo.id);
-
-    if (!req.body.followedUserId) {
-      console.error("❌ Missing followedUserId in request body");
+    if (!followedUserId) {
       return res.status(400).json("followedUserId is required");
     }
 
-    const q = "INSERT INTO relationships (`followerUserId`, `followedUserId`) VALUES (?, ?)";
-    const values = [userInfo.id, req.body.followedUserId];
-
-    console.log("📌 Executing SQL:", q, "Values:", values);
-
-    db.query(q, values, (err, data) => {
-      if (err) {
-        console.error("❌ MySQL Error:", err);
-        return res.status(500).json(err);
-      }
-      console.log("✅ Insert Successful:", data);
-      return res.status(200).json("Following");
-    });
-  });
+    const relationships = await Relationship.find({ followedUserId }).select("followerUserId");
+    return res.status(200).json(relationships.map(r => r.followerUserId));
+  } catch (err) {
+    console.error("❌ Error fetching relationships:", err);
+    res.status(500).json(err);
+  }
 };
 
-// ✅ Delete Relationship (Unfollow a User)
-export const deleteRelationship = (req, res) => {
+export const addRelationship = async (req, res) => {
   const token = req.cookies.accessToken;
-  if (!token) {
-    console.error("❌ No token found");
-    return res.status(401).json("Not logged in!");
+  if (!token) return res.status(401).json("Not logged in!");
+
+  try {
+    const userInfo = jwt.verify(token, process.env.JWT_SECRET);
+    const { followedUserId } = req.body;
+
+    if (!followedUserId) return res.status(400).json("followedUserId is required");
+
+    await Relationship.create({ followerUserId: userInfo.id, followedUserId });
+    return res.status(200).json("Following");
+  } catch (err) {
+    console.error("❌ Error adding relationship:", err);
+    res.status(500).json(err);
   }
-
-  jwt.verify(token, process.env.JWT_SECRET, (err, userInfo) => {
-    if (err) {
-      console.error("❌ Invalid token:", err);
-      return res.status(403).json("Token is not valid!");
-    }
-
-    console.log("✅ Authenticated User ID:", userInfo.id);
-
-    const q = "DELETE FROM relationships WHERE `followerUserId` = ? AND `followedUserId` = ?";
-    db.query(q, [userInfo.id, req.query.userId], (err, data) => {
-      if (err) {
-        console.error("❌ MySQL Error:", err);
-        return res.status(500).json(err);
-      }
-      console.log("✅ Unfollowed Successfully:", data);
-      return res.status(200).json("Unfollow");
-    });
-  });
 };
 
-// ✅ Get Suggestions API (Works Perfectly)
-export const getSuggestions = (req, res) => {
+
+export const deleteRelationship = async (req, res) => {
   const token = req.cookies.accessToken;
-  if (!token) {
-    return res.status(401).json("Not logged in!");
+  if (!token) return res.status(401).json("Not logged in!");
+
+  try {
+    const userInfo = jwt.verify(token, process.env.JWT_SECRET);
+    const { userId } = req.query;
+
+    await Relationship.findOneAndDelete({ followerUserId: userInfo.id, followedUserId: userId });
+    return res.status(200).json("Unfollowed");
+  } catch (err) {
+    console.error("❌ Error deleting relationship:", err);
+    res.status(500).json(err);
   }
-
-  jwt.verify(token, process.env.JWT_SECRET, (err, userInfo) => {
-    if (err) return res.status(403).json("Token is not valid!");
-
-    const q = `
-      SELECT id, username, profilePic
-      FROM users
-      WHERE id != ? AND id NOT IN (
-        SELECT followedUserId FROM relationships WHERE followerUserId = ?
-      )
-    `;
-
-    db.query(q, [userInfo.id, userInfo.id], (err, data) => {
-      if (err) return res.status(500).json(err);
-      return res.status(200).json(data);
-    });
-  });
-};
-
-// ✅ New API - Get Followers & Following Count
-export const getCounts = (req, res) => {
-  console.log("📢 Cookies:", req.cookies); // Check if token is coming in cookies
-  console.log("📢 Headers:", req.headers); // Check if token is coming in headers
-
-  const token =
-    req.cookies.accessToken || // ✅ Check token from cookies
-    req.headers.authorization?.split(" ")[1]; // ✅ Check token from headers
-
-  console.log("📢 Extracted Token:", token);
-
-  if (!token) {
-    console.error("❌ No token found");
-    return res.status(401).json("Not logged in!");
-  }
-
-  jwt.verify(token, process.env.JWT_SECRET, (err, userInfo) => {
-    if (err) {
-      console.error("❌ Invalid token:", err);
-      return res.status(403).json("Token is not valid!");
-    }
-
-    // ✅ Get Followers Count
-    const followersQuery = `
-      SELECT COUNT(*) AS followers FROM relationships WHERE followedUserId = ?
-    `;
-
-    // ✅ Get Following Count
-    const followingQuery = `
-      SELECT COUNT(*) AS following FROM relationships WHERE followerUserId = ?
-    `;
-
-    db.query(followersQuery, [userInfo.id], (err, followersData) => {
-      if (err) {
-        console.error("❌ Error fetching followers count:", err.message);
-        return res.status(500).json(err);
-      }
-
-      db.query(followingQuery, [userInfo.id], (err, followingData) => {
-        if (err) {
-          console.error("❌ Error fetching following count:", err.message);
-          return res.status(500).json(err);
-        }
-
-        // ✅ Send counts to frontend
-        return res.status(200).json({
-          followers: followersData[0].followers || 0,
-          following: followingData[0].following || 0,
-        });
-      });
-    });
-  });
 };
 
 
-// ✅ Get All Users with Full Details
-export const getAllUsers = (req, res) => {
-  console.log("📢 Checking Cookies for Token:", req.cookies);
-  console.log("📢 Checking Headers for Token:", req.headers);
+import User from "../models/User.js"; // Assume User model is defined
 
-  // ✅ Extract Token from Cookies or Headers
-  const token =
-    req.cookies.accessToken || // Token from cookies
-    req.headers.authorization?.split(" ")[1]; // Token from headers
+// export const getSuggestions = async (req, res) => {
+//   const token = req.cookies.accessToken;
+//   if (!token) return res.status(401).json("Not logged in!");
 
-  console.log("📢 Extracted Token:", token);
+//   try {
+//     const userInfo = jwt.verify(token, process.env.JWT_SECRET);
 
-  if (!token) {
-    console.error("❌ No token found");
-    return res.status(401).json("Not logged in!");
+//     const following = await Relationship.find({ followerUserId: userInfo.id }).select("followedUserId");
+//     const followingIds = following.map(r => r.followedUserId.toString());
+
+//     const suggestions = await User.find({
+//       _id: { $ne: userInfo.id, $nin: followingIds }
+//     }).select("id username profilePic");
+
+//     return res.status(200).json(suggestions);
+//   } catch (err) {
+//     console.error("❌ Error getting suggestions:", err);
+//     res.status(500).json(err);
+//   }
+// };
+
+
+export const getSuggestions = async (req, res) => {
+  const token = req.cookies.accessToken;
+  if (!token) return res.status(401).json("Not logged in!");
+
+  try {
+    const userInfo = jwt.verify(token, process.env.JWT_SECRET);
+
+    const following = await Relationship.find({ followerUserId: userInfo.id }).select("followedUserId");
+    const followingIds = following.map(r => r.followedUserId.toString());
+
+    const suggestions = await User.find({
+      _id: { $ne: userInfo.id, $nin: followingIds }
+    }).select("_id username profilePic"); // ✅ Select _id instead of id
+
+    // ✅ Map _id to id before sending response
+    const suggestionsWithId = suggestions.map(user => ({
+      id: user._id,
+      username: user.username,
+      profilePic: user.profilePic,
+    }));
+
+    return res.status(200).json(suggestionsWithId);
+  } catch (err) {
+    console.error("❌ Error getting suggestions:", err);
+    res.status(500).json(err);
   }
-
-  // ✅ Verify JWT Token
-  jwt.verify(token, process.env.JWT_SECRET, (err, userInfo) => {
-    if (err) {
-      console.error("❌ Invalid token:", err);
-      return res.status(403).json("Token is not valid!");
-    }
-
-    // ✅ Query to Get All Users from the Database
-    const q = `
-      SELECT 
-        id, 
-        username, 
-        email, 
-        name, 
-        profilePic, 
-        coverPic, 
-        created_at
-      FROM users
-    `;
-
-    db.query(q, (err, data) => {
-      if (err) {
-        console.error("❌ MySQL Error:", err);
-        return res.status(500).json(err);
-      }
-
-      console.log("✅ All Users Fetched Successfully!");
-      return res.status(200).json(data);
-    });
-  });
 };
+
+
+export const getCounts = async (req, res) => {
+  const token = req.cookies.accessToken || req.headers.authorization?.split(" ")[1];
+  if (!token) return res.status(401).json("Not logged in!");
+
+  try {
+    const userInfo = jwt.verify(token, process.env.JWT_SECRET);
+
+    const followers = await Relationship.countDocuments({ followedUserId: userInfo.id });
+    const following = await Relationship.countDocuments({ followerUserId: userInfo.id });
+
+    return res.status(200).json({ followers, following });
+  } catch (err) {
+    console.error("❌ Error fetching counts:", err);
+    res.status(500).json(err);
+  }
+};
+
+
+export const getFollowingIds = async (req, res) => {
+  const token = req.cookies.accessToken;
+  if (!token) return res.status(401).json("Not logged in!");
+
+  try {
+    const userInfo = jwt.verify(token, process.env.JWT_SECRET);
+
+    const following = await Relationship.find({ followerUserId: userInfo.id }).select("followedUserId");
+    const ids = following.map((r) => r.followedUserId.toString());
+
+    return res.status(200).json(ids);
+  } catch (err) {
+    console.error("❌ Error getting following IDs:", err);
+    res.status(500).json(err);
+  }
+};
+

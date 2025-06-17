@@ -1,25 +1,28 @@
-import express from 'express';
-import multer from 'multer';
-import { uploadToCloudinary } from '../utils/cloudinary.js';
+
+
+// routes/upload.js
+import express from "express";
+import multer from "multer";
+import { uploadToCloudinary } from "../utils/cloudinary.js";
 
 const router = express.Router();
 
-// ✅ Configure Multer for File Upload
-const storage = multer.diskStorage({});
-export const upload = multer({ storage });
+// ✅ Multer in-memory storage
+const storage = multer.memoryStorage();
+const upload = multer({ storage });
 
-// ✅ Handle Image Upload and Send URL
-router.post('/upload', upload.single('file'), async (req, res) => {
+// ✅ POST /api/upload — Upload single file
+router.post("/", upload.single("file"), async (req, res) => {
   try {
     if (!req.file) {
-      return res.status(400).json({ error: 'No file uploaded' });
+      return res.status(400).json({ error: "No file uploaded." });
     }
 
-    const fileUrl = await uploadToCloudinary(req.file.path);
-    res.status(200).json({ url: fileUrl, message: '✅ File uploaded successfully!' });
+    const result = await uploadToCloudinary(req.file.buffer);
+    res.status(200).json({ url: result.secure_url });
   } catch (error) {
-    console.error('❌ Upload Error:', error);
-    res.status(500).json({ error: 'Error uploading file' });
+    console.error("❌ Upload Error:", error.message);
+    res.status(500).json({ error: "Upload failed." });
   }
 });
 

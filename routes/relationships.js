@@ -1,32 +1,4 @@
 
-
-
-// import express from "express";
-// import {
-//   getRelationships,
-//   addRelationship,
-//   deleteRelationship,
-//   getSuggestions,
-// } from "../controllers/relationship.js";
-
-// const router = express.Router();
-
-// // ✅ Get Relationships
-// router.get("/", getRelationships);
-
-// // ✅ Get User Suggestions
-// router.get("/suggestions", getSuggestions);
-
-// // ✅ Add Relationship (Follow User)
-// router.post("/", addRelationship);
-
-// // ✅ Delete Relationship (Unfollow User)
-// router.delete("/", deleteRelationship);
-
-// export default router;
-
-
-
 import express from "express";
 import {
   getRelationships,
@@ -34,6 +6,7 @@ import {
   deleteRelationship,
   getSuggestions,
   getCounts, // ✅ Import Counts API
+   getFollowingIds
 } from "../controllers/relationship.js";
 
 const router = express.Router();
@@ -53,6 +26,7 @@ router.post("/", addRelationship);
 // ✅ Delete Relationship (Unfollow User)
 router.delete("/", deleteRelationship);
 
+router.get("/followingIds", getFollowingIds);
 
 
 export default router;
