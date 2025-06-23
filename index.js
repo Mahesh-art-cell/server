@@ -115,7 +115,7 @@ app.use("/upload", express.static(path.resolve(process.cwd(), "public/upload")))
 // ✅ Define Allowed Origins
 const allowedOrigins = [
   "http://localhost:3000",
-  // "https://client-brown-seven.vercel.app",
+  "https://client-brown-seven.vercel.app",
 ];
 
 // ✅ CORS Configuration
