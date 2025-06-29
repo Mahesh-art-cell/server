@@ -27,8 +27,8 @@ app.use("/upload", express.static(path.resolve(process.cwd(), "public/upload")))
 
 // ✅ Define Allowed Origins
 const allowedOrigins = [
-  "http://localhost:3000",
   "https://client-brown-seven.vercel.app",
+  "http://localhost:3000"
 ];
 
 // ✅ CORS Configuration
@@ -44,7 +44,7 @@ app.use(
     },
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization"],
+    allowedHeaders: ["Content-Type", "Authorization","Access-Control-Allow-Credentials"],
   })
 );
 
